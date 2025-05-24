@@ -289,5 +289,45 @@ Berdasarkan metrik evaluasi yang digunakan, XGBoost dapat dianggap sebagai model
 
 Metrik yang digunakan juga sesuai dengan problem statement dimana MSE dan MAE mampu secara langsung mengukur seberapa jauh hasil prediksi menyimpang dari nilai penjualan yang sebenarnya. Dalam konteks regresi numerik seperti ini, MSE dan MAE memberikan informasi kuantitatif tentang rata-rata kesalahan prediksi, sementara R-squared memberikan gambaran seberapa besar variasi penjualan harian yang berhasil dijelaskan oleh model berdasarkan fitur-fitur input yang tersedia dalam dataset.
 
+**Rubik Tambahan**
+Berikut adalah penulisan ulang bagian **Rubrik Tambahan: Metrik Evaluasi yang Digunakan** dalam bentuk narasi kalimat utuh, dengan gaya dan urutan yang serupa seperti contoh Anda:
+
+---
+
+**Rubrik Tambahan**
+
+### **Metrik Evaluasi yang Digunakan**
+
+1. Mean Squared Error (MSE)
+MSE menghitung rata-rata dari kuadrat selisih antara nilai aktual dan nilai prediksi. Prosesnya dilakukan dalam tiga langkah:
+(1) menghitung selisih (error) antara nilai aktual dan prediksi,
+(2) mengkuadratkan error tersebut — yang bertujuan untuk menghilangkan nilai negatif dan memberikan bobot lebih besar pada error yang besar, dan
+(3) mengambil rata-rata dari seluruh nilai kuadrat error tersebut.
+
+MSE sangat berguna untuk menunjukkan seberapa besar kesalahan prediksi secara umum. Nilai MSE yang rendah menunjukkan bahwa model mampu memberikan prediksi yang lebih dekat ke nilai aktual. Namun, karena satuan MSE merupakan kuadrat dari satuan target, interpretasinya terkadang kurang intuitif.
+
+2. Mean Absolute Error (MAE)
+MAE menghitung rata-rata dari nilai absolut selisih antara nilai aktual dan prediksi. Prosesnya cukup sederhana:
+(1) menghitung error antara nilai aktual dan prediksi,
+(2) mengambil nilai absolut dari setiap error — untuk menghindari nilai negatif, dan
+(3) menghitung rata-rata dari semua nilai absolut error tersebut.
+
+Keunggulan utama MAE adalah kemudahan interpretasinya. Karena berada dalam satuan yang sama dengan target (misalnya Rp atau USD), MAE memberikan makna langsung: jika MAE = 1.000, artinya secara rata-rata model meleset sebesar 1.000 dari nilai penjualan aktual. Selain itu, MAE cenderung kurang sensitif terhadap outlier dibanding MSE karena tidak mengkuadratkan error.
+
+3. R-squared (R²)
+R² atau koefisien determinasi digunakan untuk mengukur sejauh mana model menjelaskan variabilitas dalam data target. Nilai R² dibandingkan terhadap baseline sederhana yang hanya memprediksi rata-rata nilai target.
+
+Langkah-langkah perhitungannya dimulai dari:
+(1) menghitung total variabilitas dari data target (Total Sum of Squares atau SST),
+(2) menghitung variabilitas yang tidak dapat dijelaskan oleh model (Sum of Squared Errors atau SSE), dan
+(3) menghitung proporsi variabilitas yang berhasil dijelaskan model, dengan rumus 1 - (SSE/SST).
+
+Interpretasi nilai R²:
+
+* Jika mendekati 1, berarti model mampu menjelaskan hampir seluruh variasi dalam data — prediksi sangat baik.
+* Jika mendekati 0, artinya model tidak menjelaskan variabilitas data lebih baik dari sekadar memprediksi rata-rata.
+* Jika negatif, ini berarti model sangat buruk bahkan lebih buruk dari baseline dan tidak layak digunakan.
+
+
 Kemudian, metrik ini dipilih karena MSE memberikan interpretasi langsung ("Rata-rata selisih prediksi dengan aktual"), R2 menunjukan apakah fitur yang digunakan benar-benar mempengaruhi prediksi. Serta membandingkan secara objektif performa dua model yang berbeda (RF vs XGBoost).
 

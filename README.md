@@ -147,24 +147,24 @@ Pada bagian ini dilakukan serangkaian tahapan preprocessing untuk memastikan kua
 ### **2. Menangani Nilai Hilang (Missing Values)**
 
 **Teknik**:
-* `interpolate(method='linear')` digunakan untuk mengisi nilai kosong pada kolom `oil_price` secara linier antar waktu.
+* interpolate(method='linear') digunakan untuk mengisi nilai kosong pada kolom `oil_price` secara linier antar waktu.
 * ffill() dan bfill() melengkapi sisa missing value di awal atau akhir data.
-* `groupby("store_nbr")["transactions"].transform(...)` memastikan imputasi transactions dilakukan per toko agar sesuai pola tiap toko dan menjaga indeks tetap utuh.
+* groupby("store_nbr")["transactions"].transform(...) memastikan imputasi transactions dilakukan per toko agar sesuai pola tiap toko dan menjaga indeks tetap utuh.
 * fillna() digunakan untuk mengganti nilai kosong pada kolom kategori hari libur dengan label default seperti "NoHoliday" atau "None" agar tidak dianggap sebagai missing value saat analisis atau modeling.
 * Menggunakan visualisasi boxplot untuk mendeteksi outlier.
 * Menghapus nilai ekstrem dengan metode IQR (Interquartile Range).
 
 **Tujuan**:
-* Menghindari error pada saat pelatihan model dan memastikan data tetap representatif secara historis dan geografis.
-* Meningkatkan kualitas data dan menghindari pengaruh ekstrem yang dapat mendistorsi prediksi model.
+* Untuk menangani missing value pada oil_price dan transaction itu menggunakan teknik di atas bertujuan untuk menghindari error pada saat pelatihan model dan memastikan data tetap representatif secara historis.
+* Untuk outlier bertujuan untuk meningkatkan kualitas data dan menghindari pengaruh ekstrem yang dapat mendistorsi prediksi model.
 
 ### **3.Encoding kategori fitur dengan One-Hot-Encoding**
 
 **Teknik**:
-* Fitur kategorikal seperti family, type, city, holiday_type, dll. dikonversi menjadi kolom biner menggunakan pd.get_dummies().
+* Fitur kategorikal seperti family, type, city, holiday_type, dll. dikonversi menjadi kolom biner (0/1) menggunakan pd.get_dummies() dan menambahakan kolom hasil encoding ke data frame dan hapus kolom kategori lama dengan kolom kategori yang sudah di encoding.
 
 **Tujuan**:
-* Menjadikan data kategorikal dapat diproses oleh model machine learning, yang umumnya hanya menerima data numerik.
+* Menjadikan data kategorikal dapat diproses oleh model machine learning, yang umumnya hanya menerima data bersifat numerik.
 
 ### **4. Normalisasi data dengan MinMaxScaler**
 
@@ -187,7 +187,6 @@ Pada bagian ini dilakukan serangkaian tahapan preprocessing untuk memastikan kua
 
 **Teknik**:
 * Kolom numerik seperti sales, transactions, oil_price, onpromotion, cluster, dan real_holiday dikonversi dari tipe `float` ke `int` menggunakan .astype(int).
-
 
 **Tujuan**:
 * Menyesuaikan format tipe data dengan kebutuhan analisis lanjutan dan interpretasi (misalnya ketika ingin menampilkan dalam bentuk tabel ringkas).
@@ -289,45 +288,93 @@ Berdasarkan metrik evaluasi yang digunakan, XGBoost dapat dianggap sebagai model
 
 Metrik yang digunakan juga sesuai dengan problem statement dimana MSE dan MAE mampu secara langsung mengukur seberapa jauh hasil prediksi menyimpang dari nilai penjualan yang sebenarnya. Dalam konteks regresi numerik seperti ini, MSE dan MAE memberikan informasi kuantitatif tentang rata-rata kesalahan prediksi, sementara R-squared memberikan gambaran seberapa besar variasi penjualan harian yang berhasil dijelaskan oleh model berdasarkan fitur-fitur input yang tersedia dalam dataset.
 
-**Rubik Tambahan**
-Berikut adalah penulisan ulang bagian **Rubrik Tambahan: Metrik Evaluasi yang Digunakan** dalam bentuk narasi kalimat utuh, dengan gaya dan urutan yang serupa seperti contoh Anda:
-
----
-
 **Rubrik Tambahan**
 
-### **Metrik Evaluasi yang Digunakan**
+### Metrik Evaluasi yang Digunakan
+
+Dalam proyek prediksi penjualan harian toko ritel menggunakan dataset *Store Sales - Time Series Forecasting* dari Kaggle, saya menggunakan tiga metrik evaluasi utama, yaitu **Mean Squared Error (MSE)**, **Mean Absolute Error (MAE)**, dan **R-squared (R²)**. Ketiga metrik ini digunakan untuk mengevaluasi performa dua model regresi yang dibangun: Random Forest dan XGBoost.
 
 1. Mean Squared Error (MSE)
-MSE menghitung rata-rata dari kuadrat selisih antara nilai aktual dan nilai prediksi. Prosesnya dilakukan dalam tiga langkah:
-(1) menghitung selisih (error) antara nilai aktual dan prediksi,
-(2) mengkuadratkan error tersebut — yang bertujuan untuk menghilangkan nilai negatif dan memberikan bobot lebih besar pada error yang besar, dan
-(3) mengambil rata-rata dari seluruh nilai kuadrat error tersebut.
-
-MSE sangat berguna untuk menunjukkan seberapa besar kesalahan prediksi secara umum. Nilai MSE yang rendah menunjukkan bahwa model mampu memberikan prediksi yang lebih dekat ke nilai aktual. Namun, karena satuan MSE merupakan kuadrat dari satuan target, interpretasinya terkadang kurang intuitif.
+   * Cara Kerja:
+     MSE mengukur rata-rata dari kuadrat selisih antara nilai penjualan aktual (`sales`) dan nilai prediksi model. Langkah-langkah perhitungan MSE adalah sebagai berikut:
+     1. Hitung selisih (error) antara nilai aktual dan nilai prediksi untuk setiap baris data.
+     2. Kuadratkan setiap error tersebut. Pengkuadratan ini memiliki dua tujuan utama:
+        * Untuk menghilangkan efek negatif, sehingga error positif dan negatif tidak saling meniadakan.
+        * Untuk memberikan bobot lebih besar kepada error yang lebih besar, sehingga MSE sangat sensitif terhadap prediksi yang jauh meleset.
+     3. Hitung rata-rata dari seluruh nilai kuadrat error tersebut.
+   * Penjelasan:
+     MSE memberikan gambaran seberapa besar rata-rata kesalahan kuadrat yang dilakukan model saat memprediksi penjualan. Nilai MSE yang rendah menunjukkan bahwa model menghasilkan prediksi yang lebih akurat secara keseluruhan. Namun, karena satuan MSE adalah kuadrat dari satuan target , interpretasi angka MSE seringkali kurang intuitif dibanding MAE. Dalam konteks proyek ini, Random Forest menghasilkan MSE sebesar 1864.04 pada data uji, sedangkan XGBoost menghasilkan MSE sebesar 1816.07, yang berarti XGBoost sedikit lebih stabil.
 
 2. Mean Absolute Error (MAE)
-MAE menghitung rata-rata dari nilai absolut selisih antara nilai aktual dan prediksi. Prosesnya cukup sederhana:
-(1) menghitung error antara nilai aktual dan prediksi,
-(2) mengambil nilai absolut dari setiap error — untuk menghindari nilai negatif, dan
-(3) menghitung rata-rata dari semua nilai absolut error tersebut.
 
-Keunggulan utama MAE adalah kemudahan interpretasinya. Karena berada dalam satuan yang sama dengan target (misalnya Rp atau USD), MAE memberikan makna langsung: jika MAE = 1.000, artinya secara rata-rata model meleset sebesar 1.000 dari nilai penjualan aktual. Selain itu, MAE cenderung kurang sensitif terhadap outlier dibanding MSE karena tidak mengkuadratkan error.
+   * Cara Kerja:
+     MAE menghitung rata-rata dari nilai absolut selisih antara nilai aktual dan nilai prediksi. Prosesnya:
+     1. Hitung error antara setiap nilai penjualan aktual dan prediksinya.
+     2. Ambil nilai absolut dari error-error tersebut untuk memastikan bahwa semua error bersifat positif.
+     3. Hitung rata-rata dari nilai-nilai absolut tersebut.
+   * Penjelasan:
+     MAE lebih mudah diinterpretasikan dibandingkan MSE karena satuannya sama dengan variabel target, yaitu penjualan (misalnya dalam satuan unit atau dolar). Sebagai contoh, MAE sebesar 20 berarti bahwa, secara rata-rata, prediksi model meleset sebanyak 20 unit penjualan dari nilai sebenarnya. Dalam proyek ini, Random Forest memiliki MAE sebesar 18.94 pada data uji, sementara XGBoost menghasilkan MAE sebesar 22.65. Ini menunjukkan bahwa Random Forest sedikit lebih akurat dalam hal kesalahan rata-rata absolut, namun tetap perlu memperhatikan kestabilan model secara keseluruhan.
 
 3. R-squared (R²)
-R² atau koefisien determinasi digunakan untuk mengukur sejauh mana model menjelaskan variabilitas dalam data target. Nilai R² dibandingkan terhadap baseline sederhana yang hanya memprediksi rata-rata nilai target.
+   * Cara Kerja:
+     R² digunakan untuk mengukur sejauh mana model mampu menjelaskan variabilitas dalam data target dibandingkan dengan baseline sederhana (yang hanya memprediksi rata-rata penjualan). Proses perhitungannya:
+     1. Hitung total variasi nilai penjualan dari rata-ratanya (SST – Total Sum of Squares).
+     2. Hitung jumlah error yang tidak dijelaskan oleh model (SSE – Sum of Squared Errors).
+     3. Hitung proporsi variasi yang berhasil dijelaskan model, yaitu 1 dikurangi rasio SSE terhadap SST.
+   * Penjelasan:
+     R² memberikan wawasan tentang seberapa besar kontribusi fitur-fitur input (seperti promosi, transaksi, harga minyak, dan hari libur) dalam menjelaskan fluktuasi penjualan harian.
+     * R² mendekati 1 itu berarti model menjelaskan hampir seluruh variabilitas penjualan.
+     * R² mendekati 0 itu berarti model tidak jauh lebih baik dari sekadar menebak rata-rata.
+     * R² bisa bernilai **negatif** jika model sangat buruk.
 
-Langkah-langkah perhitungannya dimulai dari:
-(1) menghitung total variabilitas dari data target (Total Sum of Squares atau SST),
-(2) menghitung variabilitas yang tidak dapat dijelaskan oleh model (Sum of Squared Errors atau SSE), dan
-(3) menghitung proporsi variabilitas yang berhasil dijelaskan model, dengan rumus 1 - (SSE/SST).
+     Dalam proyek ini, Random Forest mencapai R² sebesar 0.8347 pada data uji, sedangkan XGBoost sedikit lebih baik dengan R² sebesar 0.8390, yang menunjukkan bahwa meskipun performa keduanya mendekati, XGBoost memiliki kemampuan sedikit lebih baik dalam menjelaskan variasi penjualan harian secara konsisten.
 
-Interpretasi nilai R²:
-
-* Jika mendekati 1, berarti model mampu menjelaskan hampir seluruh variasi dalam data — prediksi sangat baik.
-* Jika mendekati 0, artinya model tidak menjelaskan variabilitas data lebih baik dari sekadar memprediksi rata-rata.
-* Jika negatif, ini berarti model sangat buruk bahkan lebih buruk dari baseline dan tidak layak digunakan.
+Secara keseluruhan, dari ketiga metrik ini saling melengkapi dan memberikan evaluasi yang menyeluruh:
+* MSE untuk menyoroti prediksi yang sangat meleset,
+* MAE untuk memberikan ukuran kesalahan rata-rata yang mudah dipahami, dan
+* R² untuk menunjukkan seberapa baik model memanfaatkan informasi dalam fitur untuk menjelaskan variasi data.
+* 
+  Dengan menggunakan metrik-metrik ini, kita dapat melakukan perbandingan objektif antara dua model dan menyimpulkan bahwa XGBoost lebih unggul dalam stabilitas dan generalisasi terhadap data yang belum pernah dilihat sebelumnya.
 
 
-Kemudian, metrik ini dipilih karena MSE memberikan interpretasi langsung ("Rata-rata selisih prediksi dengan aktual"), R2 menunjukan apakah fitur yang digunakan benar-benar mempengaruhi prediksi. Serta membandingkan secara objektif performa dua model yang berbeda (RF vs XGBoost).
+**Rubrik Tambahan Prediksi Penjualan**
+
+**Prediksi Penjualan Tertinggi dan Terendah dengan Model XGBoost**
+
+Setelah dilakukan pelatihan dan evaluasi model, XGBoost dipilih sebagai model utama karena menunjukkan performa paling konsisten dan stabil antara data latih dan uji. Model ini digunakan untuk melakukan prediksi penjualan harian, lalu hasilnya dianalisis untuk mengidentifikasi toko-toko dengan penjualan tertinggi dan terendah berdasarkan fitur yang telah diolah dan direkonstruksi kembali (melalui inverse one-hot encoding dan inverse MinMaxScaler).
+
+**Prediksi Penjualan Tertinggi (Top 5)**
+
+Hasil prediksi menunjukkan bahwa 5 toko dengan penjualan tertinggi berasal dari:
+
+* Store number: 1, 11, 44, 10, dan 18
+* Kategori produk dominan: BREAD/BAKERY, DAIRY, DELI, dan BEVERAGES
+* Lokasi: Mayoritas berlokasi di kota Quito, provinsi Pichincha
+* Tipe toko: Beragam (A, B, C, dan D), namun semua menunjukkan performa tinggi.
+
+Ciri khas lain yang ditemukan:
+
+* Nilai onpromotion relatif tinggi, salah satunya mencapai 0.090090, menandakan adanya aktivitas promosi aktif.
+* Tidak terjadi pada hari libur nasional (real\_holiday = 0), mengindikasikan bahwa faktor utama pendorong penjualan tinggi adalah lokasi strategis dan promosi, bukan momen hari libur.
+
+**Prediksi Penjualan Terendah (Bottom 5)**
+
+Untuk prediksi penjualan terendah, model menunjukkan:
+* Store number: 26, 52, 22, 10, dan 18
+* Kategori produk: SEAFOOD, HOME CARE, PREPARED FOODS, BABY CARE, dan BEAUTY
+* Lokasi toko: Berada di kota Guayaquil, Manta, dan sebagian di Quito
+* State: Guayas, Manabí, dan Pichincha
+* Tipe toko: Beragam (D, E, A, B, dan C), tapi tidak terkait langsung dengan rendahnya penjualan.
+
+Ciri lainnya:
+
+* Sebagian besar prediksi rendah ini terjadi pada hari libur nasional (real\_holiday = 1)
+* Tidak satu pun memiliki nilai onpromotion, menunjukkan tidak adanya upaya promosi saat itu.
+
+**Kesimpulan Strategis**
+
+* Promosi dan lokasi terbukti sebagai dua faktor dominan dalam mendorong penjualan tinggi.
+* Kategori produk juga sangat memengaruhi performa penjualan. Produk seperti roti, susu, dan minuman lebih sering dibeli dibanding seafood atau perawatan bayi.
+* Untuk toko dengan performa rendah, disarankan melakukan aktivasi promosi dan evaluasi kategori produk yang ditawarkan pada hari-hari tertentu.
+
 

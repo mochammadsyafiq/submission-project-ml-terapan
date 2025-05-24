@@ -134,11 +134,11 @@ Pada bagian ini dilakukan serangkaian tahapan preprocessing untuk memastikan kua
 
 ### **1.  Merge data + *Rename* data + Penambahan Fitur**
 
+**Teknik**:
 * Data dari berbagai file (`train.csv`, `stores.csv`, `transactions.csv`, `oil.csv`, dan `holidays_events.csv`) digabungkan menggunakan `pd.merge()` berdasarkan kolom `store_nbr` dan `date`.
 * Kolom dcoilwtico dari `oil.csv` di-*rename* menjadi oil_price dengan .rename() untuk meningkatkan keterbacaan dan konsistensi.
 * Kolom type, locale, locale_name, dan description dari `holidays_events.csv` diubah menjadi holiday_type, holiday_locale, holiday_locale_name, dan holiday_desc dengan menggunakan .rename() untuk  menghindari konflik saat penggabungan.
 * Ditambahkan fitur biner baru bernama `real_holiday` dengan memanfaatkan fungsi def determine_real_holiday untuk menyatakan apakah suatu tanggal merupakan hari libur yang relevan bagi toko tersebut. Fitur ini dibuat berdasarkan kombinasi lokasi libur (National, Regional, Local) dan atribut lokasi toko (state, city).
-
 
 **Tujuan**:
 * Menyatukan informasi penting ke dalam satu dataset untuk pelatihan model, serta menghindari konflik nama kolom dan meningkatkan keterbacaan.
@@ -146,6 +146,7 @@ Pada bagian ini dilakukan serangkaian tahapan preprocessing untuk memastikan kua
 
 ### **2. Menangani Nilai Hilang (Missing Values)**
 
+**Teknik**:
 * `interpolate(method='linear')` digunakan untuk mengisi nilai kosong pada kolom `oil_price` secara linier antar waktu.
 * ffill() dan bfill() melengkapi sisa missing value di awal atau akhir data.
 * `groupby("store_nbr")["transactions"].transform(...)` memastikan imputasi transactions dilakukan per toko agar sesuai pola tiap toko dan menjaga indeks tetap utuh.
@@ -158,20 +159,24 @@ Pada bagian ini dilakukan serangkaian tahapan preprocessing untuk memastikan kua
 * Meningkatkan kualitas data dan menghindari pengaruh ekstrem yang dapat mendistorsi prediksi model.
 
 ### **3.Encoding kategori fitur dengan One-Hot-Encoding**
+
+**Teknik**:
 * Fitur kategorikal seperti family, type, city, holiday_type, dll. dikonversi menjadi kolom biner menggunakan pd.get_dummies().
 
 **Tujuan**:
-
 * Menjadikan data kategorikal dapat diproses oleh model machine learning, yang umumnya hanya menerima data numerik.
 
 ### **4. Normalisasi data dengan MinMaxScaler**
+
+**Teknik**:
 * Menggunakan `MinMaxScaler` pada kolom numerik seperti onpromotion, cluster, oil_price, transactions, real_holiday.
 
 **Tujuan**:
-
 * Menyamakan skala antar fitur agar model tidak bias terhadap fitur dengan rentang nilai yang besar.
 
 ### **5. Sampling dan Pembagian Data (Train-Test Split)**
+
+**Teknik**:
 * Diambil sampel acak sebanyak 30.000 baris dari data bersih untuk efisiensi komputasi.
 * Data dibagi menjadi fitur (X) dan target (y), lalu dilakukan split 80% train dan 20% test menggunakan `train_test_split`.
 
@@ -180,11 +185,11 @@ Pada bagian ini dilakukan serangkaian tahapan preprocessing untuk memastikan kua
 
 ### **6. Konversi Tipe Data Numerik**
 
+**Teknik**:
 * Kolom numerik seperti sales, transactions, oil_price, onpromotion, cluster, dan real_holiday dikonversi dari tipe `float` ke `int` menggunakan .astype(int).
 
 
 **Tujuan**:
-
 * Menyesuaikan format tipe data dengan kebutuhan analisis lanjutan dan interpretasi (misalnya ketika ingin menampilkan dalam bentuk tabel ringkas).
 * Menghindari masalah kompatibilitas saat menyimpan, visualisasi, atau inverse-scaling nilai prediksi.
 * Pada konteks seperti onpromotion dan transactions, data bersifat diskret sehingga lebih logis direpresentasikan dalam bentuk integer.

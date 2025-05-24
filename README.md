@@ -227,8 +227,6 @@ Menurut Mustapha & Sithole (2025), algoritma ini sangat sesuai untuk prediksi pe
 * Tahan terhadap overfitting karena efek rata-rata dari banyak pohon.
 * Mudah digunakan dan relatif stabil terhadap data noisy.
 
----
-
 ### 2. **XGBoost Regressor**
 
 XGBoost (Extreme Gradient Boosting) adalah algoritma boosting yang bekerja secara bertahap untuk mengoreksi kesalahan dari model sebelumnya. Cocok untuk data yang kompleks dan besar, serta dikenal karena kecepatan dan akurasinya yang tinggi.

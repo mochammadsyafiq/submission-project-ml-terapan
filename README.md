@@ -194,4 +194,63 @@ Pada bagian ini dilakukan serangkaian tahapan preprocessing untuk memastikan kua
 * Menghindari masalah kompatibilitas saat menyimpan, visualisasi, atau inverse-scaling nilai prediksi.
 * Pada konteks seperti onpromotion dan transactions, data bersifat diskret sehingga lebih logis direpresentasikan dalam bentuk integer.
 
+Berdasarkan file Python Anda (`submission_pertama_predictive_analiysis_.py`), nilai `random_state` yang digunakan adalah:
+
+* **Random Forest Regressor**: `random_state=42`
+* **XGBoost Regressor**: `random_state=42`
+
+Berikut adalah bagian **♣️ MODELING** yang telah diperbarui agar **parameter `random_state` sesuai** dengan implementasi Anda:
+
+---
+
+## MODELING
+
+### 1. **Random Forest Regressor**
+
+Random Forest adalah algoritma **ensemble learning** berbasis pohon keputusan (decision tree). Ia membangun banyak pohon secara paralel dari subset acak data dan fitur, lalu menggabungkan hasilnya. Untuk regresi, prediksi akhirnya adalah rata-rata dari semua pohon.
+
+Menurut Mustapha & Sithole (2025), algoritma ini sangat sesuai untuk prediksi penjualan karena mampu menangani data berskala besar, fitur multivariat, dan noise dengan baik, serta tahan terhadap overfitting.
+
+**Parameter yang Digunakan**:
+* `n_estimators=100`: Jumlah pohon keputusan yang dibangun.
+* `random_state=42`: Nilai acak untuk memastikan hasil pelatihan model konsisten setiap kali dijalankan.
+* `n_jobs=-1`: Menggunakan seluruh inti CPU untuk mempercepat proses pelatihan.
+
+**Cara Kerja**:
+* Dataset dilatih dengan metode **bootstrap sampling** (pengambilan subset acak dengan pengembalian).
+* Setiap pohon dilatih dengan subset acak dari fitur untuk meningkatkan keragaman antar pohon.
+* Prediksi akhir dihitung sebagai **rata-rata** dari prediksi semua pohon.
+
+**Keunggulan**:
+
+* Mampu menangkap hubungan non-linier antar fitur.
+* Tahan terhadap overfitting karena efek rata-rata dari banyak pohon.
+* Mudah digunakan dan relatif stabil terhadap data noisy.
+
+---
+
+### 2. **XGBoost Regressor**
+
+XGBoost (Extreme Gradient Boosting) adalah algoritma boosting yang bekerja secara bertahap untuk mengoreksi kesalahan dari model sebelumnya. Cocok untuk data yang kompleks dan besar, serta dikenal karena kecepatan dan akurasinya yang tinggi.
+
+Menurut Sajawal et al. (2022) dan Swami et al. (2020), XGBoost sangat efektif dalam kasus prediksi penjualan karena dapat menangani missing value, data tidak seimbang, dan memiliki kemampuan regularisasi untuk mencegah overfitting.
+
+**Parameter yang Digunakan**:
+
+* `n_estimators=300`: Jumlah pohon boosting yang dibangun secara bertahap.
+* `max_depth=4`: Maksimal kedalaman pohon untuk mengontrol kompleksitas model.
+* `random_state=42`: Seed acak untuk memastikan hasil yang dapat direproduksi.
+* `n_jobs=-1`: Menggunakan seluruh inti CPU untuk efisiensi proses pelatihan.
+
+**Cara Kerja**:
+
+* Pohon pertama dibuat untuk menghasilkan prediksi awal.
+* Setiap pohon berikutnya dibentuk untuk meminimalkan error dari pohon sebelumnya, menggunakan **gradient descent** terhadap loss function.
+* Prediksi akhir diperoleh dari penjumlahan semua pohon yang dibangun.
+
+**Keunggulan**:
+
+* Akurat dan efisien, sangat cocok untuk data time series dan multivariat.
+* Mendukung regularisasi (L1 dan L2), sehingga lebih tahan terhadap overfitting.
+* Memiliki fitur otomatis untuk penanganan missing value dan optimalisasi paralel.
 

@@ -23,28 +23,19 @@ Mustapha, O. O., & Sithole, T. (2025). Forecasting retail sales using machine le
 
 Swami, D., Shah, A. D., & Ray, S. K. B. (2020). Predicting future sales of retail products using machine learning. arXiv preprint. https://arxiv.org/abs/2008.07779
 
-Berikut adalah bagian **Business Understanding** lengkap beserta **Problem Statements**, **Goals**, dan **Solution Statements** berdasarkan file Python, latar belakang di README, dan konteks dataset Kaggle *Store Sales - Time Series Forecasting*:
-
----
-
 ## **Business Understanding**
 
 Permasalahan utama yang terdapat dalam industri ritel adalah kesulitan dalam memprediksi penjualan secara akurat karena banyaknya variabel yang saling memengaruhi secara kompleks, seperti jenis produk, promosi, lokasi toko, jumlah transaksi, hari libur, dan harga minyak. Perusahaan yang tidak mampu memprediksi penjualan dengan baik berisiko mengalami kelebihan stok, kekurangan suplai, atau kerugian finansial. Model tradisional seringkali gagal dalam menangkap pola ini, sehingga diperlukan pendekatan berbasis *machine learning* untuk meningkatkan akurasi prediksi.
 
 Dalam konteks ini, dalam membangun model prediksi penjualan ritel dapat menggunakan algoritma seperti **Random Forest** dan **XGBoost**, dengan tahapan yang komprehensif seperti penggabungan multi-sumber data, pembersihan data, encoding kategori, normalisasi fitur numerik, serta deteksi dan penanganan outlier.
 
-
-
 ### **Problem Statement**
 
 Bagaimana membangun model prediksi penjualan ritel harian yang akurat dan stabil dengan memanfaatkan data multivariat dari berbagai toko di Ekuador menggunakan algoritma machine learning seperti Random Forest dan XGBoost?
 
-
-
 ### **Goals**
 
 Menghasilkan model prediksi penjualan berbasis machine learning yang mampu menangkap hubungan kompleks antar fitur dan mampu melakukan generalisasi dengan baik terhadap data baru, sehingga dapat digunakan sebagai dasar pengambilan keputusan operasional dan strategis toko ritel yang mengarah pada data.
-
 
 ### **Solution Statements**
 
@@ -52,5 +43,62 @@ Menghasilkan model prediksi penjualan berbasis machine learning yang mampu menan
 2. **Melakukan data preprocessing menyeluruh**, termasuk penggabungan data dari berbagai file (`train.csv`, `stores.csv`, `transactions.csv`, `oil.csv`, `holidays_events.csv`), penanganan missing value dengan interpolasi dan imputation berbasis grup, serta encoding fitur kategorikal dan normalisasi numerik.
 3. **Melakukan evaluasi performa model** menggunakan metrik terukur seperti Mean Squared Error (MSE), Mean Absolute Error (MAE), dan R² Score pada data training dan testing.
 4. **Meningkatkan akurasi dan stabilitas model** melalui pemilihan model dengan generalisasi terbaik berdasarkan evaluasi — dalam hal ini XGBoost dipilih karena memberikan keseimbangan performa pada data latih dan uji.
+
+## **Data Understanding**
+
+Dataset yang digunakan dalam proyek ini adalah **Store Sales - Time Series Forecasting** yang tersedia di [Kaggle Datasets](https://www.kaggle.com/datasets/shiyonisagar/store-sales-time-series-forecasting). Dataset ini merupakan data penjualan harian dari berbagai toko di Ekuador dan sangat cocok digunakan untuk proyek peramalan penjualan karena mencakup berbagai fitur yang memengaruhi performa toko, seperti promosi, hari libur, transaksi, lokasi toko, dan faktor eksternal seperti harga minyak dunia.
+
+Dataset ini terdiri dari beberapa file terpisah yang masing-masing memiliki peran penting dalam membentuk konteks yang lebih lengkap untuk analisis dan pemodelan prediksi penjualan.
+
+### **Variabel-variabel dalam dataset ini adalah sebagai berikut:**
+
+#### **1. train.csv**
+
+* `id` : ID unik untuk setiap baris data penjualan.
+* `date` : Tanggal penjualan.
+* `store_nbr` : Nomor toko tempat terjadinya penjualan.
+* `family` : Kategori produk yang dijual.
+* `sales` : Jumlah penjualan unit (target prediksi).
+* `onpromotion` : Jumlah item dalam promosi pada hari tersebut.
+
+#### **2. stores.csv**
+
+* `store_nbr` : Nomor toko (relasi dengan train.csv).
+* `city` : Kota tempat toko berada.
+* `state` : Negara bagian toko berada.
+* `type` : Tipe toko (A–E).
+* `cluster` : Kelompok toko berdasarkan demografis atau perilaku konsumen.
+
+#### **3. transactions.csv**
+
+* `date` : Tanggal transaksi.
+* `store_nbr` : Nomor toko.
+* `transactions` : Jumlah transaksi yang terjadi di toko tersebut.
+
+#### **4. oil.csv**
+
+* `date` : Tanggal data harga minyak.
+* `dcoilwtico` : Harga minyak mentah West Texas Intermediate (WTI).
+
+#### **5. holidays\_events.csv**
+
+* `date` : Tanggal hari libur atau event.
+* `type` : Jenis hari libur (Holiday, Event, Transfer, Work Day, Additional, Bridge).
+* `locale` : Tingkat cakupan hari libur (National, Regional, Local).
+* `locale_name` : Nama wilayah (negara bagian atau kota) tempat hari libur berlaku.
+* `description` : Nama atau deskripsi event/libur.
+* `transferred` : Boolean yang menunjukkan apakah hari libur digeser ke tanggal lain.
+
+
+### **Tahapan Tambahan: Exploratory Data Analysis (EDA)**
+
+Untuk memahami struktur dan karakteristik data secara lebih mendalam, dilakukan beberapa langkah EDA:
+
+* **Visualisasi distribusi kategori toko (`type`) dan wilayah (`state`)** menunjukkan bahwa toko tipe D dan wilayah Pichincha paling dominan jumlahnya, yang bisa mempengaruhi agregat penjualan nasional.
+* **Distribusi jumlah transaksi** cenderung menceng ke kanan, dengan puncak pada kisaran 1000–1500 transaksi.
+* **Harga minyak (`dcoilwtico`) menunjukkan pola bimodal**, dengan dua puncak harga dominan di sekitar \$50 dan \$100.
+* **Distribusi hari libur** menunjukkan dominasi hari libur nasional dibanding lokal atau regional.
+
+EDA dan pemahaman variabel ini sangat penting agar model machine learning dapat dibangun di atas fondasi data yang bersih, representatif, dan bermakna.
 
 

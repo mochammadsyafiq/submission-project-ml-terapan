@@ -194,15 +194,6 @@ Pada bagian ini dilakukan serangkaian tahapan preprocessing untuk memastikan kua
 * Menghindari masalah kompatibilitas saat menyimpan, visualisasi, atau inverse-scaling nilai prediksi.
 * Pada konteks seperti onpromotion dan transactions, data bersifat diskret sehingga lebih logis direpresentasikan dalam bentuk integer.
 
-Berdasarkan file Python Anda (`submission_pertama_predictive_analiysis_.py`), nilai `random_state` yang digunakan adalah:
-
-* **Random Forest Regressor**: `random_state=42`
-* **XGBoost Regressor**: `random_state=42`
-
-Berikut adalah bagian **♣️ MODELING** yang telah diperbarui agar **parameter `random_state` sesuai** dengan implementasi Anda:
-
----
-
 ## MODELING
 
 ### 1. **Random Forest Regressor**
@@ -212,9 +203,9 @@ Random Forest adalah algoritma **ensemble learning** berbasis pohon keputusan (d
 Menurut Mustapha & Sithole (2025), algoritma ini sangat sesuai untuk prediksi penjualan karena mampu menangani data berskala besar, fitur multivariat, dan noise dengan baik, serta tahan terhadap overfitting.
 
 **Parameter yang Digunakan**:
-* `n_estimators=100`: Jumlah pohon keputusan yang dibangun.
-* `random_state=42`: Nilai acak untuk memastikan hasil pelatihan model konsisten setiap kali dijalankan.
-* `n_jobs=-1`: Menggunakan seluruh inti CPU untuk mempercepat proses pelatihan.
+* n_estimators=100 : Jumlah pohon keputusan yang dibangun.
+* random_state=42 : Nilai acak untuk memastikan hasil pelatihan model konsisten setiap kali dijalankan.
+* n_jobs=-1 : Menggunakan seluruh inti CPU untuk mempercepat proses pelatihan.
 
 **Cara Kerja**:
 * Dataset dilatih dengan metode **bootstrap sampling** (pengambilan subset acak dengan pengembalian).
@@ -235,10 +226,10 @@ Menurut Sajawal et al. (2022) dan Swami et al. (2020), XGBoost sangat efektif da
 
 **Parameter yang Digunakan**:
 
-* `n_estimators=300`: Jumlah pohon boosting yang dibangun secara bertahap.
-* `max_depth=4`: Maksimal kedalaman pohon untuk mengontrol kompleksitas model.
-* `random_state=42`: Seed acak untuk memastikan hasil yang dapat direproduksi.
-* `n_jobs=-1`: Menggunakan seluruh inti CPU untuk efisiensi proses pelatihan.
+* n_estimators=300 : Jumlah pohon boosting yang dibangun secara bertahap.
+* max_depth=4 : Maksimal kedalaman pohon untuk mengontrol kompleksitas model.
+* random_state=42 : Seed acak untuk memastikan hasil yang dapat direproduksi.
+* n_jobs=-1 : Menggunakan seluruh inti CPU untuk efisiensi proses pelatihan.
 
 **Cara Kerja**:
 
@@ -251,4 +242,52 @@ Menurut Sajawal et al. (2022) dan Swami et al. (2020), XGBoost sangat efektif da
 * Akurat dan efisien, sangat cocok untuk data time series dan multivariat.
 * Mendukung regularisasi (L1 dan L2), sehingga lebih tahan terhadap overfitting.
 * Memiliki fitur otomatis untuk penanganan missing value dan optimalisasi paralel.
+
+
+## EVALUATION
+
+Dalam evaluasi model prediksi penjualan harian, beberapa metrik evaluasi digunakan untuk mengukur performa model yang dibangun. Metrik ini dipilih karena relevansinya dalam konteks regresi (prediksi nilai kontinu), serta kemampuannya memberi wawasan berbeda terkait kualitas prediksi.
+
+### **Metrik yang Digunakan**:
+
+* Mean Squared Error (MSE)
+* Mean Absolute Error (MAE)
+* R-squared (R²)
+
+### **Hasil Evaluasi Model**
+Berdasarkan hasil evaluasi pada data train dan test, peforma kedua model sebagai berikut:
+
+**Random Forest Regressor**:
+* Train MSE: 256.29
+* Test MSE: 1864.04
+* Train MAE: 7.06
+* Test MAE: 18.94
+* Train R-squared: 0.978
+* Test R-squared: 0.835
+
+**XGBoost Regressor**:
+* Train MSE: 1129.57
+* Test MSE: 1816.07
+* Train MAE: 18.84
+* Test MAE: 22.65
+* Train R-squared: 0.901
+* Test R-squared: 0.839
+
+
+### **Interpretasi Hasil:**
+
+1. Performa Error (MSE dan MAE):
+   * Random Forest menunjukkan performa sangat baik pada data latih (train), dengan error yang sangat rendah. Namun, terjadi lonjakan error cukup besar pada data uji (test), yang mengindikasikan adanya gejala overfitting.
+   * XGBoost memiliki nilai MSE dan MAE yang lebih stabil antara train dan test, meskipun error pada train lebih tinggi dari Random Forest. Ini menandakan bahwa model lebih mampu melakukan generalisasi terhadap data baru.
+
+2. R-squared (Koefisien Determinasi) :
+   * Random Forest mampu menjelaskan sekitar 97.8% variansi data latih, namun pada data uji hanya menjelaskan 83.5%, memperkuat indikasi bahwa model terlalu menyesuaikan diri pada data pelatihan.
+   * XGBoost meski memiliki R² yang lebih rendah pada data latih (90.1%), namun performa lebih konsisten pada data uji (83.9%), menunjukkan bahwa model ini lebih stabil dan tahan terhadap overfitting, serta lebih mampu dalam memahami konteks data baru.
+
+**Kesimpulan**
+Berdasarkan metrik evaluasi yang digunakan, XGBoost dapat dianggap sebagai model lebih baik dan stabil dalam konteks prediksi penjualan harian, karena kemampuannya untuk memberikan prediksi akurat dan lebih konsisten pada data yang belum pernah dilihat sebelumnya.
+
+Metrik yang digunakan juga sesuai dengan problem statement dimana MSE dan MAE mampu secara langsung mengukur seberapa jauh hasil prediksi menyimpang dari nilai penjualan yang sebenarnya. Dalam konteks regresi numerik seperti ini, MSE dan MAE memberikan informasi kuantitatif tentang rata-rata kesalahan prediksi, sementara R-squared memberikan gambaran seberapa besar variasi penjualan harian yang berhasil dijelaskan oleh model berdasarkan fitur-fitur input yang tersedia dalam dataset.
+
+Kemudian, metrik ini dipilih karena MSE memberikan interpretasi langsung ("Rata-rata selisih prediksi dengan aktual"), R2 menunjukan apakah fitur yang digunakan benar-benar mempengaruhi prediksi. Serta membandingkan secara objektif performa dua model yang berbeda (RF vs XGBoost).
 

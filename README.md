@@ -54,40 +54,55 @@ Dataset ini terdiri dari beberapa file terpisah yang masing-masing memiliki pera
 
 #### **1. train.csv**
 
-* id : ID unik untuk setiap baris data penjualan.
-* date : Tanggal penjualan.
-* store_nbr : Nomor toko tempat terjadinya penjualan.
-* family : Kategori produk yang dijual.
-* sales : Jumlah penjualan unit (target prediksi).
-* onpromotion : Jumlah item dalam promosi pada hari tersebut.
+| Fitur         | Deskripsi                                                        |
+| ------------- | ---------------------------------------------------------------- |
+| id          | ID unik untuk setiap observasi.                                  |
+| date        | Tanggal dalam format YYYY-MM-DD.                                 |
+| store_nbr   | Nomor toko tempat produk dijual.                                 |
+| family      | Kategori produk, seperti BEVERAGES, BREAD/BAKERY, CLEANING, dll. |
+| sales       | Jumlah penjualan unit per hari. (Target variabel)                |
+| onpromotion | Jumlah item dalam kategori tersebut yang sedang dalam promosi.   |
+
 
 #### **2. stores.csv**
 
-* store_nbr : Nomor toko (relasi dengan train.csv).
-* city : Kota tempat toko berada.
-* state : Negara bagian toko berada.
-* type : Tipe toko (A–E).
-* cluster : Kelompok toko berdasarkan demografis atau perilaku konsumen.
+| Fitur       | Deskripsi                                                          |
+| ----------- | ------------------------------------------------------------------ |
+| store_nbr | Nomor toko.                                                        |
+| city      | Kota tempat toko berada.                                           |
+| state     | Provinsi atau negara bagian di Ekuador.                            |
+| type      | Tipe toko (A–E), menggambarkan format atau ukuran toko.            |
+| cluster   | Segmentasi toko berdasarkan karakteristik demografis dan perilaku. |
+
 
 #### **3. transactions.csv**
 
-* date : Tanggal transaksi.
-* store_nbr : Nomor toko.
-* transactions : Jumlah transaksi yang terjadi di toko tersebut.
+| Fitur          | Deskripsi                                       |
+| -------------- | ----------------------------------------------- |
+| date         | Tanggal transaksi.                              |
+| store_nbr    | Nomor toko.                                     |
+| transactions | Jumlah transaksi yang terjadi di toko tersebut. |
+
 
 #### **4. oil.csv**
 
-* date : Tanggal data harga minyak.
-* dcoilwtico : Harga minyak mentah West Texas Intermediate (WTI).
+| Fitur        | Deskripsi                   |
+| ------------ | --------------------------- |
+| date       | Tanggal pengukuran.         |
+| dcoilwtico | Harga minyak WTI dalam USD. |
+
 
 #### **5. holidays\_events.csv**
 
-* date : Tanggal hari libur atau event.
-* type : Jenis hari libur (Holiday, Event, Transfer, Work Day, Additional, Bridge).
-* locale : Tingkat cakupan hari libur (National, Regional, Local).
-* locale_name : Nama wilayah (negara bagian atau kota) tempat hari libur berlaku.
-* description : Nama atau deskripsi event/libur.
-* transferred : Boolean yang menunjukkan apakah hari libur digeser ke tanggal lain.
+| Fitur         | Deskripsi                                                             |
+| ------------- | --------------------------------------------------------------------- |
+| date        | Tanggal event.                                                        |
+| type        | Jenis event (Holiday, Transfer, Bridge, Additional, Event, Work Day). |
+| locale      | Tingkat cakupan (Local, Regional, National).                          |
+| locale_name | Nama kota atau negara bagian tempat berlaku.                          |
+| description | Nama atau deskripsi hari libur/event.                                 |
+| transferred | Boolean yang menunjukkan apakah event dipindah tanggalnya.            |
+
 
 
 ### **Tahapan Tambahan: Exploratory Data Analysis (EDA)**

@@ -116,4 +116,77 @@ Untuk memahami struktur dan karakteristik data secara lebih mendalam, dilakukan 
 
 EDA dan pemahaman variabel ini sangat penting agar model machine learning dapat dibangun di atas fondasi data yang bersih, representatif, dan bermakna.
 
+## **Data Preparation**
+
+Pada bagian ini dilakukan serangkaian tahapan preprocessing untuk memastikan kualitas data yang digunakan dalam proses pelatihan model prediksi penjualan. Berikut adalah langkah-langkah data preparation secara berurutan:
+1. Merge data + *Rename* data + Penambahan Fitur
+2. Penanganan missing value
+   - Menggunakan interpolate(), ffill(), dan bfill() digunakan untuk mengisi nilai hilang pada oil_price.
+   - Menggunakan nilai `transactions` diisi berdasarkan toko menggunakan groupby + ffill() dan bfill().
+   - Kategori hari libur yang kosong diisi dengan nilai default ("NoHoliday", "None").
+   - Penanganan Outlier
+3. Encoding kategori fitur dengan One-Hot-Encoding
+4. Normalisasi data dengan MinMaxScaler
+5. Sampling dan Pembagian Data (Train-Test Split)
+6. Konversi Tipe Data Numerik
+
+**Rubik Tambahan**
+
+### **1.  Merge data + *Rename* data + Penambahan Fitur**
+
+* Data dari berbagai file (`train.csv`, `stores.csv`, `transactions.csv`, `oil.csv`, dan `holidays_events.csv`) digabungkan menggunakan `pd.merge()` berdasarkan kolom `store_nbr` dan `date`.
+* Kolom dcoilwtico dari `oil.csv` di-*rename* menjadi oil_price dengan .rename() untuk meningkatkan keterbacaan dan konsistensi.
+* Kolom type, locale, locale_name, dan description dari `holidays_events.csv` diubah menjadi holiday_type, holiday_locale, holiday_locale_name, dan holiday_desc dengan menggunakan .rename() untuk  menghindari konflik saat penggabungan.
+* Ditambahkan fitur biner baru bernama `real_holiday` dengan memanfaatkan fungsi def determine_real_holiday untuk menyatakan apakah suatu tanggal merupakan hari libur yang relevan bagi toko tersebut. Fitur ini dibuat berdasarkan kombinasi lokasi libur (National, Regional, Local) dan atribut lokasi toko (state, city).
+
+
+**Tujuan**:
+* Menyatukan informasi penting ke dalam satu dataset untuk pelatihan model, serta menghindari konflik nama kolom dan meningkatkan keterbacaan.
+* Penambahan fitur `real_holiday` menyederhanakan representasi kompleks hari libur ke dalam bentuk numerik yang bisa langsung dimanfaatkan model prediktif.
+
+### **2. Menangani Nilai Hilang (Missing Values)**
+
+* `interpolate(method='linear')` digunakan untuk mengisi nilai kosong pada kolom `oil_price` secara linier antar waktu.
+* ffill() dan bfill() melengkapi sisa missing value di awal atau akhir data.
+* `groupby("store_nbr")["transactions"].transform(...)` memastikan imputasi transactions dilakukan per toko agar sesuai pola tiap toko dan menjaga indeks tetap utuh.
+* fillna() digunakan untuk mengganti nilai kosong pada kolom kategori hari libur dengan label default seperti "NoHoliday" atau "None" agar tidak dianggap sebagai missing value saat analisis atau modeling.
+* Menggunakan visualisasi boxplot untuk mendeteksi outlier.
+* Menghapus nilai ekstrem dengan metode IQR (Interquartile Range).
+
+**Tujuan**:
+* Menghindari error pada saat pelatihan model dan memastikan data tetap representatif secara historis dan geografis.
+* Meningkatkan kualitas data dan menghindari pengaruh ekstrem yang dapat mendistorsi prediksi model.
+
+### **3.Encoding kategori fitur dengan One-Hot-Encoding**
+* Fitur kategorikal seperti family, type, city, holiday_type, dll. dikonversi menjadi kolom biner menggunakan pd.get_dummies().
+
+**Tujuan**:
+
+* Menjadikan data kategorikal dapat diproses oleh model machine learning, yang umumnya hanya menerima data numerik.
+
+### **4. Normalisasi data dengan MinMaxScaler**
+* Menggunakan `MinMaxScaler` pada kolom numerik seperti onpromotion, cluster, oil_price, transactions, real_holiday.
+
+**Tujuan**:
+
+* Menyamakan skala antar fitur agar model tidak bias terhadap fitur dengan rentang nilai yang besar.
+
+### **5. Sampling dan Pembagian Data (Train-Test Split)**
+* Diambil sampel acak sebanyak 30.000 baris dari data bersih untuk efisiensi komputasi.
+* Data dibagi menjadi fitur (X) dan target (y), lalu dilakukan split 80% train dan 20% test menggunakan `train_test_split`.
+
+**Tujuan**:
+* Mengurangi beban komputasi dan memastikan evaluasi model dilakukan pada data yang belum dilatih.
+
+### **6. Konversi Tipe Data Numerik**
+
+* Kolom numerik seperti sales, transactions, oil_price, onpromotion, cluster, dan real_holiday dikonversi dari tipe `float` ke `int` menggunakan .astype(int).
+
+
+**Tujuan**:
+
+* Menyesuaikan format tipe data dengan kebutuhan analisis lanjutan dan interpretasi (misalnya ketika ingin menampilkan dalam bentuk tabel ringkas).
+* Menghindari masalah kompatibilitas saat menyimpan, visualisasi, atau inverse-scaling nilai prediksi.
+* Pada konteks seperti onpromotion dan transactions, data bersifat diskret sehingga lebih logis direpresentasikan dalam bentuk integer.
+
 

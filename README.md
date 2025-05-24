@@ -89,7 +89,7 @@ Dataset ini terdiri dari beberapa file terpisah yang masing-masing memiliki pera
 | Fitur        | Deskripsi                   |
 | ------------ | --------------------------- |
 | date       | Tanggal pengukuran.         |
-| dcoilwtico | Harga minyak WTI dalam USD. |
+| dcoilwtico (oil_price) | Harga minyak WTI dalam USD. |
 
 
 #### **5. holidays\_events.csv**
@@ -97,10 +97,10 @@ Dataset ini terdiri dari beberapa file terpisah yang masing-masing memiliki pera
 | Fitur         | Deskripsi                                                             |
 | ------------- | --------------------------------------------------------------------- |
 | date        | Tanggal event.                                                        |
-| type        | Jenis event (Holiday, Transfer, Bridge, Additional, Event, Work Day). |
-| locale      | Tingkat cakupan (Local, Regional, National).                          |
-| locale_name | Nama kota atau negara bagian tempat berlaku.                          |
-| description | Nama atau deskripsi hari libur/event.                                 |
+| type (holiday_type)       | Jenis event (Holiday, Transfer, Bridge, Additional, Event, Work Day). |
+| locale (holiday_locale)     | Tingkat cakupan (Local, Regional, National).                          |
+| locale_name (holiday_locale_name) | Nama kota atau negara bagian tempat berlaku.                          |
+| description (holiday_desc) | Nama atau deskripsi hari libur/event.                                 |
 | transferred | Boolean yang menunjukkan apakah event dipindah tanggalnya.            |
 
 

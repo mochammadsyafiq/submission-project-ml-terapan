@@ -169,48 +169,48 @@ Metode: `duplicated().sum()`
 
 ## **Data Preprocessing**
 
-Tahap ini bertujuan untuk mempersiapkan data agar layak digunakan dalam proses pemodelan sistem rekomendasi. Data preprocessing dilakukan secara sistematis untuk memastikan integritas, kebersihan, dan keterpaduan data.
+Tahap ini bertujuan untuk **menggabungkan dan menyusun ulang data mentah** agar menjadi satu kesatuan data terpadu yang siap untuk dibersihkan dan dipersiapkan dalam tahap selanjutnya. Proses ini dilakukan sebelum data digunakan dalam pelatihan model.
 
-1. Konversi Kolom Waktu
 
-Langkah pertama melibatkan konversi kolom `timestamp` pada data `ratings` dan `tags` dari format Unix time ke format `datetime` menggunakan fungsi `pd.to_datetime()` dengan parameter `unit='s'`. Konversi ini memudahkan pembacaan waktu oleh manusia dan membuka kemungkinan analisis berbasis waktu di tahap lanjutan.
+1. Konversi Format Waktu
 
-2. Penggabungan Dataset
+**Metode**:
 
-Seluruh file utama dalam dataset digabungkan untuk membentuk satu kesatuan data yang komprehensif.
+* Fungsi `pd.to_datetime()` diterapkan pada kolom `timestamp` pada `ratings` dan `tags`.
 
-* Dataset `movies` digabungkan dengan `links` menggunakan *left join* berdasarkan `movieId` untuk menambahkan informasi ID eksternal seperti `imdbId` dan `tmdbId`.
-* Selanjutnya, hasil penggabungan tersebut digabungkan dengan dataset `ratings` untuk mengintegrasikan informasi interaksi pengguna.
-* Akhirnya, dataset `tags` ditambahkan berdasarkan kombinasi `movieId` dan `userId`.
+**Alasan**:
+Konversi dilakukan untuk mempermudah pembacaan waktu dan memungkinkan analisis berbasis waktu jika dibutuhkan di tahap eksplorasi atau evaluasi.
 
-Penggabungan ini bertujuan untuk menciptakan dataset yang mengandung informasi film, interaksi pengguna, dan preferensi tambahan berupa tag.
 
-3. Penghapusan Kolom yang Tidak Relevan
+2. Penggabungan Beberapa Dataset
 
-Setelah proses penggabungan beberapa dataset, kolom `timestamp_x` dan `timestamp_y` yang berasal dari tabel `ratings` dan `tags` dihapus menggunakan fungsi `drop()`. Kedua kolom tersebut merupakan hasil duplikasi dari atribut waktu dan tidak memiliki peran signifikan dalam proses pemodelan. Oleh karena itu, penghapusannya bertujuan untuk menyederhanakan struktur data, mencegah kebingungan dalam analisis, serta menjaga efisiensi pemrosesan (Han, Kamber, & Pei, 2011).
+**Metode**:
+Dataset `movies`, `links`, `ratings`, dan `tags` digabungkan secara bertahap menggunakan fungsi `pd.merge()`:
 
-4. Penanganan Missing Values
+* `movies` digabungkan dengan `links` berdasarkan `movieId` menggunakan metode *left join*.
+* Hasil tersebut digabungkan dengan `ratings`, juga berdasarkan `movieId`.
+* Selanjutnya digabungkan dengan `tags` berdasarkan kombinasi `movieId` dan `userId`.
 
-Penanganan nilai kosong (missing values) dilakukan secara selektif:
+**Alasan**:
+Penggabungan ini dilakukan untuk mengintegrasikan seluruh informasi penting (judul film, genre, ID eksternal, rating pengguna, serta tag) dalam satu DataFrame utama. Hal ini akan memudahkan proses cleaning, analisis, serta training model.
 
-* Kolom `tag` diisi dengan string kosong (`''`) karena bersifat opsional.
-* Baris yang memiliki nilai kosong pada kolom `rating`, `userId`, atau `tmdbId` dihapus. Hal ini penting agar setiap entri memiliki informasi rating dan identitas pengguna yang lengkap, serta terhubung ke sumber metadata eksternal.
+3. Penghapusan Kolom Duplikatif
 
-5. Pembersihan Judul Film
+**Metode**:
+Kolom `timestamp_x` dan `timestamp_y` yang merupakan hasil penggabungan dari data `ratings` dan `tags` dihapus menggunakan `drop(columns=...)`.
 
-Kolom `title` pada dataset film dibersihkan dari informasi tahun rilis menggunakan teknik ekspresi reguler (`re.sub`). Tahun rilis yang biasanya ditulis dalam format "(YYYY)" di akhir judul dihapus untuk meningkatkan konsistensi saat digunakan dalam proses tokenisasi atau pencocokan teks.
+**Alasan**:
+Kolom tersebut bersifat duplikatif dan tidak lagi relevan dengan tujuan analisis atau pemodelan, sehingga penghapusannya menyederhanakan struktur data dan menghindari kebingungan.
 
-6. Penyusunan Data Film Unik
+4. Pemeriksaan Struktur dan Ukuran Dataset
 
-Dataset kemudian diurutkan berdasarkan `movieId` dan difilter untuk memastikan hanya ada satu entri unik per film. Data yang telah dibersihkan disimpan dalam DataFrame baru bernama `movies_new`, yang memuat tiga kolom utama: `movieId`, `movie_title`, dan `genre`. Dataset ini digunakan sebagai referensi utama dalam pengembangan model rekomendasi berbasis konten.
+**Metode**:
 
-### **Alasan dan Justifikasi**
+* Fungsi `full_data.shape` digunakan untuk melihat dimensi dataset gabungan.
+* Fungsi `isnull().sum()` digunakan untuk mendeteksi jumlah nilai kosong.
 
-Tahapan preprocessing ini diperlukan untuk:
+**Alasan**:
+Langkah ini memastikan bahwa hasil penggabungan berhasil, tidak merusak integritas data, serta memberikan gambaran awal tentang kebutuhan pembersihan di tahap berikutnya (preparation).
 
-* Membersihkan data yang tidak diperlukan dan menghindari data ganda.
-* Memastikan keterpaduan antar sumber informasi (film, pengguna, interaksi).
-* Menyiapkan data agar kompatibel dengan dua pendekatan model yang digunakan: *Content-Based Filtering* dan *Collaborative Filtering*.
-* Mengoptimalkan kualitas input yang akan diberikan ke model machine learning, yang sangat bergantung pada kebersihan dan kelengkapan data input (Han, Kamber, & Pei, 2011).
 
 

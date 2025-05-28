@@ -210,7 +210,7 @@ Dataset kemudian diurutkan berdasarkan `movieId` dan difilter untuk memastikan h
 
 Tahapan preprocessing ini diperlukan untuk:
 
-* Menghilangkan noise dan redundansi data.
+* Membersihkan data yang tidak diperlukan dan menghindari data ganda.
 * Memastikan keterpaduan antar sumber informasi (film, pengguna, interaksi).
 * Menyiapkan data agar kompatibel dengan dua pendekatan model yang digunakan: *Content-Based Filtering* dan *Collaborative Filtering*.
 * Mengoptimalkan kualitas input yang akan diberikan ke model machine learning, yang sangat bergantung pada kebersihan dan kelengkapan data input (Han, Kamber, & Pei, 2011).

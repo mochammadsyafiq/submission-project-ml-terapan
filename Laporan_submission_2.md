@@ -167,52 +167,6 @@ Metode: `duplicated().sum()`
 
   * Penting untuk integrasi metadata eksternal.
 
-## **Data Preprocessing**
-
-Tahap ini bertujuan untuk **menggabungkan dan menyusun ulang data mentah** agar menjadi satu kesatuan data terpadu yang siap untuk dibersihkan dan dipersiapkan dalam tahap selanjutnya. Proses ini dilakukan sebelum data digunakan dalam pelatihan model.
-
-
-1. Konversi Format Waktu
-
-**Metode**:
-
-* Fungsi `pd.to_datetime()` diterapkan pada kolom `timestamp` pada `ratings` dan `tags`.
-
-**Alasan**:
-Konversi dilakukan untuk mempermudah pembacaan waktu dan memungkinkan analisis berbasis waktu jika dibutuhkan di tahap eksplorasi atau evaluasi.
-
-
-2. Penggabungan Beberapa Dataset
-
-**Metode**:
-Dataset `movies`, `links`, `ratings`, dan `tags` digabungkan secara bertahap menggunakan fungsi `pd.merge()`:
-
-* `movies` digabungkan dengan `links` berdasarkan `movieId` menggunakan metode *left join*.
-* Hasil tersebut digabungkan dengan `ratings`, juga berdasarkan `movieId`.
-* Selanjutnya digabungkan dengan `tags` berdasarkan kombinasi `movieId` dan `userId`.
-
-**Alasan**:
-Penggabungan ini dilakukan untuk mengintegrasikan seluruh informasi penting (judul film, genre, ID eksternal, rating pengguna, serta tag) dalam satu DataFrame utama. Hal ini akan memudahkan proses cleaning, analisis, serta training model.
-
-3. Penghapusan Kolom Duplikatif
-
-**Metode**:
-Kolom `timestamp_x` dan `timestamp_y` yang merupakan hasil penggabungan dari data `ratings` dan `tags` dihapus menggunakan `drop(columns=...)`.
-
-**Alasan**:
-Kolom tersebut bersifat duplikatif dan tidak lagi relevan dengan tujuan analisis atau pemodelan, sehingga penghapusannya menyederhanakan struktur data dan menghindari kebingungan.
-
-4. Pemeriksaan Struktur dan Ukuran Dataset
-
-**Metode**:
-
-* Fungsi `full_data.shape` digunakan untuk melihat dimensi dataset gabungan.
-* Fungsi `isnull().sum()` digunakan untuk mendeteksi jumlah nilai kosong.
-
-**Alasan**:
-Langkah ini memastikan bahwa hasil penggabungan berhasil, tidak merusak integritas data, serta memberikan gambaran awal tentang kebutuhan pembersihan di tahap berikutnya (preparation).
-
-
 ## **Data Preparation**
 
 Tahapan ini berfokus pada proses penggabungan dan pembersihan data agar siap digunakan untuk membangun sistem rekomendasi. Teknik yang dilakukan mencakup *merging*, *cleaning*, *filtering*, hingga eksplorasi awal terhadap genre film.

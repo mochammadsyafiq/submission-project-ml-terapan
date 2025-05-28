@@ -185,8 +185,6 @@ Seluruh file utama dalam dataset digabungkan untuk membentuk satu kesatuan data 
 
 Penggabungan ini bertujuan untuk menciptakan dataset yang mengandung informasi film, interaksi pengguna, dan preferensi tambahan berupa tag.
 
-Berikut adalah **revisi bagian “Penghapusan Kolom Redundan”** dengan pilihan kata yang lebih tepat dan sesuai gaya APA:
-
 3. Penghapusan Kolom yang Tidak Relevan
 
 Setelah proses penggabungan beberapa dataset, kolom `timestamp_x` dan `timestamp_y` yang berasal dari tabel `ratings` dan `tags` dihapus menggunakan fungsi `drop()`. Kedua kolom tersebut merupakan hasil duplikasi dari atribut waktu dan tidak memiliki peran signifikan dalam proses pemodelan. Oleh karena itu, penghapusannya bertujuan untuk menyederhanakan struktur data, mencegah kebingungan dalam analisis, serta menjaga efisiensi pemrosesan (Han, Kamber, & Pei, 2011).

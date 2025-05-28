@@ -212,15 +212,15 @@ Kolom tersebut bersifat duplikatif dan tidak lagi relevan dengan tujuan analisis
 **Alasan**:
 Langkah ini memastikan bahwa hasil penggabungan berhasil, tidak merusak integritas data, serta memberikan gambaran awal tentang kebutuhan pembersihan di tahap berikutnya (preparation).
 
-##  **Data Preparation**
 
-Tahap ini bertujuan untuk menggabungkan dan membersihkan data agar siap digunakan dalam proses pengembangan model sistem rekomendasi. Teknik yang dilakukan meliputi *merging*, *filtering*, *cleaning*, *encoding*, dan *normalization*. Berikut urutannya sesuai implementasi `:
+## **Data Preparation**
+
+Tahapan ini berfokus pada proses penggabungan dan pembersihan data agar siap digunakan untuk membangun sistem rekomendasi. Teknik yang dilakukan mencakup *merging*, *cleaning*, *filtering*, hingga eksplorasi awal terhadap genre film.
 
 1. **Menggabungkan Dataset**
 
 **Metode yang Digunakan**:
-
-* `pd.merge()` (left join)
+`pd.merge()` dengan strategi *left join*
 
 **Langkah-langkah**:
 
@@ -229,113 +229,114 @@ Tahap ini bertujuan untuk menggabungkan dan membersihkan data agar siap digunaka
 * Gabungkan kembali dengan `tags` berdasarkan `movieId` dan `userId`
 
 **Tujuan**:
-Membentuk dataset terpadu berisi informasi film, rating pengguna, tag, dan ID eksternal seperti IMDb dan TMDb.
+Menyatukan seluruh informasi penting dalam satu dataset: metadata film (judul, genre, ID eksternal), interaksi pengguna (rating), dan tambahan opini (tag).
 
 **Alasan**:
-Sistem rekomendasi (baik content-based maupun collaborative) membutuhkan informasi pengguna, interaksi, dan metadata film dalam satu kesatuan data.
+Model rekomendasi membutuhkan semua komponen tersebut agar dapat mengenali hubungan antara pengguna, film, dan kontennya.
 
-2. **Menghapus Kolom Timestamp Redundan**
+2. **Menghapus Kolom Timestamp**
 
-**Metode yang Digunakan**:
-
-* `drop(columns=['timestamp_x', 'timestamp_y'])`
+**Metode**:
+`drop(columns=['timestamp_x', 'timestamp_y'])`
 
 **Tujuan**:
-Menghapus kolom sisa hasil penggabungan yang tidak relevan.
+Menghilangkan kolom waktu yang berasal dari proses penggabungan `ratings` dan `tags`.
 
 **Alasan**:
-Data timestamp sudah diproses pada tahap load dan tidak digunakan dalam modeling, sehingga dapat dihapus untuk menyederhanakan dataset.
+Tidak diperlukan dalam proses modeling, sehingga lebih baik dihapus untuk menyederhanakan data.
 
-3. **Menangani Missing Value**
+3. **Menangani Nilai Kosong (Missing Values)**
 
-**Metode yang Digunakan**:
+**Metode**:
 
-* `fillna('')` → kolom `tag`
-* `dropna(subset=['rating', 'userId', 'tmdbId'])`
+* `fillna('')` untuk kolom `tag`
+* `dropna(subset=['rating', 'userId', 'tmdbId'])` untuk baris penting
 
 **Tujuan**:
-Membersihkan data dari entri yang tidak lengkap untuk variabel penting.
+Mengisi nilai kosong pada kolom opsional, serta menghapus entri yang tidak lengkap untuk rating dan ID.
 
 **Alasan**:
-
-* `tag` bersifat opsional, maka diisi string kosong.
-* `rating`, `userId`, dan `tmdbId` adalah kunci untuk membangun model yang akurat—baris tanpa informasi ini dihapus agar tidak memengaruhi kualitas model.
+Kolom `tag` opsional, tapi `rating`, `userId`, dan `tmdbId` sangat penting untuk membuat model yang akurat.
 
 4. **Membersihkan Judul Film**
 
-**Metode yang Digunakan**:
-
-* `apply(lambda x: re.sub(r'\s*\(\d{4}\)', '', x))` pada kolom `title`
+**Metode**:
+`re.sub(r'\s*\(\d{4}\)', '', x)` pada kolom `title`
 
 **Tujuan**:
-Menghapus tahun rilis dalam tanda kurung dari nama film.
+Menghapus tahun rilis dari judul film.
 
 **Alasan**:
-Agar judul film lebih bersih dan tidak membingungkan dalam analisis berbasis teks (TF-IDF atau pencocokan string).
+Agar lebih bersih saat digunakan dalam tokenisasi atau pencocokan string dalam sistem content-based.
 
-5. **Mengurutkan dan Menghapus Duplikat Film**
+5. **Mengurutkan dan Menyaring Film Unik**
 
-**Metode yang Digunakan**:
+**Metode**:
 
-* `sort_values(by='movieId')`
+* `sort_values('movieId')`
 * `drop_duplicates('movieId')`
 
 **Tujuan**:
-Menjamin satu film hanya muncul satu kali dalam daftar referensi.
+Mengurutkan dan menghapus entri film yang duplikat berdasarkan ID.
 
 **Alasan**:
-Hal ini penting untuk sistem rekomendasi berbasis konten agar tidak terjadi duplikasi skor kesamaan antar film.
+Mencegah satu film dihitung lebih dari sekali dalam pembentukan vektor konten.
 
-6. **Membentuk Data Referensi Film**
+ 6. **Mengecek Film Unik dan Variasi Genre**
 
-**Metode yang Digunakan**:
+**Metode**:
 
-* Mengonversi kolom `movieId`, `title`, dan `genres` menjadi list lalu disusun ulang ke dalam DataFrame `movies_new`.
+```python
+len(fix_movies.movieId.unique())
+fix_movies.genres.unique()
+```
 
 **Tujuan**:
-Membentuk data acuan film yang bersih, unik, dan siap diproses dalam sistem content-based filtering.
+Memastikan jumlah film yang tersedia sudah bersih dan melihat keragaman genre.
 
 **Alasan**:
-Dataset ini akan digunakan untuk menghasilkan vektor TF-IDF berdasarkan genre film.
+Penting untuk memahami ruang konten yang akan dipelajari oleh model berbasis konten.
 
-7. **Encoding ID Pengguna dan Film**
+7. **Mengecek Genre Film Tertentu**
 
-**Metode yang Digunakan**:
+**Metode**:
 
-* Mapping ID ke numerik menggunakan `user_to_user_encoded` dan `movie_to_movie_encoded`
-* Disimpan dalam kolom baru: `user` dan `movie`
+```python
+fix_movies[fix_movies['title'] == 'Toy Story']
+```
 
 **Tujuan**:
-Mengubah ID pengguna dan film ke bentuk numerik agar dapat digunakan dalam model embedding TensorFlow.
+Validasi manual bahwa genre film tertentu sudah sesuai.
 
 **Alasan**:
-Model machine learning memerlukan input numerik—bukan string atau ID mentah.
+Memastikan data genre yang digunakan pada saat inferensi benar-benar mencerminkan isi film.
 
-8. **Normalisasi Rating**
+8. **Membuat Dataset Referensi Film (`movies_new`)**
 
-**Metode yang Digunakan**:
+**Metode**:
 
-* `(x - min_rating) / (max_rating - min_rating)`
+* Konversi kolom `movieId`, `title`, dan `genres` menjadi list
+* Susun kembali ke dalam DataFrame baru
+
+```python
+movie_id = preparation['movieId'].tolist()
+movie_title = preparation['title'].tolist()
+movie_genre = preparation['genres'].tolist()
+
+movies_new = pd.DataFrame({
+    'id': movie_id,
+    'movie_title': movie_title,
+    'genre': movie_genre
+})
+```
 
 **Tujuan**:
-Mengubah skala rating dari 0.5–5.0 menjadi 0–1.
+Membentuk data acuan untuk model content-based filtering.
 
 **Alasan**:
-Model menggunakan fungsi aktivasi `sigmoid`, yang hanya menghasilkan nilai antara 0 dan 1. Normalisasi memastikan output sesuai skala target.
+`movies_new` akan digunakan dalam proses pembobotan TF-IDF untuk mengukur kemiripan antar film berdasarkan genre.
 
 
- 9. **Membagi Data untuk Training dan Validasi**
-
-**Metode yang Digunakan**:
-
-* `sample(frac=1)` untuk mengacak data
-* Split manual 80:20
-
-**Tujuan**:
-Memisahkan data untuk pelatihan dan pengujian model.
-
-**Alasan**:
-Evaluasi performa model perlu dilakukan dengan data yang belum pernah dilihat sebelumnya agar menghindari overfitting dan mendapatkan hasil yang objektif.
 
 
 

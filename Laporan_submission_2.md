@@ -212,5 +212,131 @@ Kolom tersebut bersifat duplikatif dan tidak lagi relevan dengan tujuan analisis
 **Alasan**:
 Langkah ini memastikan bahwa hasil penggabungan berhasil, tidak merusak integritas data, serta memberikan gambaran awal tentang kebutuhan pembersihan di tahap berikutnya (preparation).
 
+##  **Data Preparation**
+
+Tahap ini bertujuan untuk menggabungkan dan membersihkan data agar siap digunakan dalam proses pengembangan model sistem rekomendasi. Teknik yang dilakukan meliputi *merging*, *filtering*, *cleaning*, *encoding*, dan *normalization*. Berikut urutannya sesuai implementasi `:
+
+1. **Menggabungkan Dataset**
+
+**Metode yang Digunakan**:
+
+* `pd.merge()` (left join)
+
+**Langkah-langkah**:
+
+* Gabungkan `movies` dengan `links` berdasarkan `movieId`
+* Gabungkan hasilnya dengan `ratings`
+* Gabungkan kembali dengan `tags` berdasarkan `movieId` dan `userId`
+
+**Tujuan**:
+Membentuk dataset terpadu berisi informasi film, rating pengguna, tag, dan ID eksternal seperti IMDb dan TMDb.
+
+**Alasan**:
+Sistem rekomendasi (baik content-based maupun collaborative) membutuhkan informasi pengguna, interaksi, dan metadata film dalam satu kesatuan data.
+
+2. **Menghapus Kolom Timestamp Redundan**
+
+**Metode yang Digunakan**:
+
+* `drop(columns=['timestamp_x', 'timestamp_y'])`
+
+**Tujuan**:
+Menghapus kolom sisa hasil penggabungan yang tidak relevan.
+
+**Alasan**:
+Data timestamp sudah diproses pada tahap load dan tidak digunakan dalam modeling, sehingga dapat dihapus untuk menyederhanakan dataset.
+
+3. **Menangani Missing Value**
+
+**Metode yang Digunakan**:
+
+* `fillna('')` → kolom `tag`
+* `dropna(subset=['rating', 'userId', 'tmdbId'])`
+
+**Tujuan**:
+Membersihkan data dari entri yang tidak lengkap untuk variabel penting.
+
+**Alasan**:
+
+* `tag` bersifat opsional, maka diisi string kosong.
+* `rating`, `userId`, dan `tmdbId` adalah kunci untuk membangun model yang akurat—baris tanpa informasi ini dihapus agar tidak memengaruhi kualitas model.
+
+4. **Membersihkan Judul Film**
+
+**Metode yang Digunakan**:
+
+* `apply(lambda x: re.sub(r'\s*\(\d{4}\)', '', x))` pada kolom `title`
+
+**Tujuan**:
+Menghapus tahun rilis dalam tanda kurung dari nama film.
+
+**Alasan**:
+Agar judul film lebih bersih dan tidak membingungkan dalam analisis berbasis teks (TF-IDF atau pencocokan string).
+
+5. **Mengurutkan dan Menghapus Duplikat Film**
+
+**Metode yang Digunakan**:
+
+* `sort_values(by='movieId')`
+* `drop_duplicates('movieId')`
+
+**Tujuan**:
+Menjamin satu film hanya muncul satu kali dalam daftar referensi.
+
+**Alasan**:
+Hal ini penting untuk sistem rekomendasi berbasis konten agar tidak terjadi duplikasi skor kesamaan antar film.
+
+6. **Membentuk Data Referensi Film**
+
+**Metode yang Digunakan**:
+
+* Mengonversi kolom `movieId`, `title`, dan `genres` menjadi list lalu disusun ulang ke dalam DataFrame `movies_new`.
+
+**Tujuan**:
+Membentuk data acuan film yang bersih, unik, dan siap diproses dalam sistem content-based filtering.
+
+**Alasan**:
+Dataset ini akan digunakan untuk menghasilkan vektor TF-IDF berdasarkan genre film.
+
+7. **Encoding ID Pengguna dan Film**
+
+**Metode yang Digunakan**:
+
+* Mapping ID ke numerik menggunakan `user_to_user_encoded` dan `movie_to_movie_encoded`
+* Disimpan dalam kolom baru: `user` dan `movie`
+
+**Tujuan**:
+Mengubah ID pengguna dan film ke bentuk numerik agar dapat digunakan dalam model embedding TensorFlow.
+
+**Alasan**:
+Model machine learning memerlukan input numerik—bukan string atau ID mentah.
+
+8. **Normalisasi Rating**
+
+**Metode yang Digunakan**:
+
+* `(x - min_rating) / (max_rating - min_rating)`
+
+**Tujuan**:
+Mengubah skala rating dari 0.5–5.0 menjadi 0–1.
+
+**Alasan**:
+Model menggunakan fungsi aktivasi `sigmoid`, yang hanya menghasilkan nilai antara 0 dan 1. Normalisasi memastikan output sesuai skala target.
+
+
+ 9. **Membagi Data untuk Training dan Validasi**
+
+**Metode yang Digunakan**:
+
+* `sample(frac=1)` untuk mengacak data
+* Split manual 80:20
+
+**Tujuan**:
+Memisahkan data untuk pelatihan dan pengujian model.
+
+**Alasan**:
+Evaluasi performa model perlu dilakukan dengan data yang belum pernah dilihat sebelumnya agar menghindari overfitting dan mendapatkan hasil yang objektif.
+
+
 
 

@@ -73,3 +73,98 @@ Untuk mencapai tujuan di atas, proyek ini menggunakan dua pendekatan sistem reko
   * Dapat merekomendasikan film yang sangat berbeda kontennya tapi relevan secara preferensi pengguna.
 
 
+## **Data Understanding**
+
+### **Sumber Data**
+
+Dataset yang digunakan dalam proyek ini adalah **MovieLens Latest Small Dataset** yang tersedia secara publik di tautan berikut:
+🔗 [https://files.grouplens.org/datasets/movielens/ml-latest-small.zip](https://files.grouplens.org/datasets/movielens/ml-latest-small.zip)
+
+Dataset ini banyak digunakan sebagai benchmark dalam pengembangan sistem rekomendasi karena kualitas anotasi dan struktur datanya (Harper & Konstan, 2015).
+
+### **Informasi Umum Dataset**
+
+Dataset ini berisi **100.836 rating** yang diberikan oleh **610 pengguna** terhadap **9.742 film**. Setiap pengguna memberikan rating minimal 20 film.
+
+Dataset terdiri dari beberapa file utama:
+
+| Nama File     | Deskripsi                                                                |
+| ------------- | ------------------------------------------------------------------------ |
+| `movies.csv`  | Informasi tentang film seperti `movieId`, `title`, dan `genres`.         |
+| `ratings.csv` | Data interaksi pengguna: `userId`, `movieId`, `rating`, dan `timestamp`. |
+| `tags.csv`    | Tag atau anotasi dari pengguna terhadap film tertentu (opsional).        |
+| `links.csv`   | Tautan `movieId` ke ID di IMDb dan TMDb.                                 |
+
+
+### **Kriteria Tambahan**
+**Exploratory Data Analysis (Univariate - Non-Visual)**
+
+1. **Struktur Dataset**
+
+Metode: `DataFrame.info()`
+
+* Digunakan untuk melihat jumlah data, tipe data, dan nilai null pada masing-masing kolom.
+* Insight:
+
+  * Tidak ada missing value di `movies`, `ratings`, dan `tags`.
+  * Terdapat 8 missing values di kolom `tmdbId` pada `links`.
+
+2. **Entitas Unik**
+
+Metode: `len().unique()`
+
+* Jumlah film unik: **9.742**
+* Jumlah pengguna yang memberikan rating: **610**
+* Jumlah rating: **100.836**
+* Jumlah pengguna yang memberi tag: **609**
+* Jumlah film yang diberi tag: **1.828**
+* Jumlah tag unik: **1.293**
+* Jumlah film yang memiliki link eksternal: **9.742**
+
+Insight:
+
+* Tidak semua pengguna aktif menggunakan fitur tagging.
+* Relasi ke IMDb/TMDb sangat lengkap.
+
+3. **Duplikasi**
+
+Metode: `duplicated().sum()`
+
+* Semua file (`ratings`, `movies`, `tags`, `links`) tidak memiliki duplikat.
+* Insight: Data bersih dan siap untuk proses modeling.
+
+4. **Eksplorasi Variabel**
+
+**a. `movies.csv`**
+
+* Jumlah film: 9.742
+* Genre tersedia dalam format string terpisah tanda “|”.
+* Insight:
+
+  * Genre cukup beragam dan menjadi basis utama untuk *Content-Based Filtering*.
+  * Tidak ada missing value.
+
+**b. `ratings.csv`**
+
+* Rating dari 0.5 – 5.0 dalam interval 0.5.
+* Total: 100.836 rating dari 610 pengguna untuk 9.724 film.
+* Insight:
+
+  * Skala rating granular dan cocok untuk *Collaborative Filtering*.
+
+**c. `tags.csv`**
+
+* Total tag: 3.683 dari 609 pengguna.
+* Insight:
+
+  * Penggunaan tag bersifat opsional dan terbatas, tapi bisa dipakai untuk analisis semantik lanjutan.
+
+**d. `links.csv`**
+
+* Total film: 9.742
+* Ada 8 missing value di `tmdbId`.
+* Insight:
+
+  * Penting untuk integrasi metadata eksternal.
+
+

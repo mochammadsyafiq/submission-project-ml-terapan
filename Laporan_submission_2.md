@@ -477,33 +477,53 @@ Menggunakan `ratings_cf`, subset dari `full_data`, dengan kolom:
 Dengan menggabungkan kedua pendekatan ini, sistem rekomendasi dapat menjadi lebih kuat dan fleksibel, mengakomodasi berbagai jenis pengguna dan kebutuhan.
 
 
-## EVALUATION
+## 📊 EVALUATION
 
-### **Metrik Evaluasi: RMSE**
-
-#### **Alasan Pemilihan Metrik RMSE**
-
-Dalam proyek ini, sistem rekomendasi dibangun menggunakan dua pendekatan berbeda:
-
-1. **Content-Based Filtering**
-
-   * Menganalisis kesamaan konten film berdasarkan genre.
-   * Tidak memiliki label ground truth eksplisit untuk kesukaan pengguna → evaluasi kuantitatif sulit dilakukan langsung.
-
-2. **Collaborative Filtering (Neural Network)**
-
-   * Memprediksi seberapa besar kemungkinan seorang pengguna akan menyukai sebuah film berdasarkan data historis interaksi pengguna.
-   * Memiliki ground truth eksplisit (nilai rating yang diberikan pengguna).
-   * Oleh karena itu, digunakan metrik **Root Mean Squared Error (RMSE)** untuk mengevaluasi akurasi prediksi rating.
-
-RMSE dipilih karena:
-
-* Sangat umum digunakan untuk mengevaluasi sistem rekomendasi berbasis rating.
-* Memberikan penalti lebih besar terhadap kesalahan prediksi yang besar.
-* Cocok untuk data berskala kontinu (dalam hal ini, rating film 0.5–5.0 yang telah dinormalisasi ke 0–1).
+Evaluasi dilakukan untuk mengukur **seberapa baik sistem rekomendasi memenuhi tujuannya** dalam memberikan rekomendasi film yang relevan dan personal. Proyek ini menerapkan dua pendekatan berbeda, sehingga evaluasi dilakukan dengan **pendekatan metrik yang berbeda pula**, disesuaikan dengan karakteristik model.
 
 
-###  **Definisi RMSE**
+### **Evaluasi Content-Based Filtering**
+
+#### Tujuan Evaluasi
+
+Mengukur kemampuan sistem dalam merekomendasikan film berdasarkan **kemiripan genre** terhadap film yang disukai pengguna.
+
+####  Metode Evaluasi
+
+Karena model ini **tidak menggunakan data rating** atau label eksplisit pengguna (seperti suka/tidak suka), maka **tidak memungkinkan evaluasi kuantitatif berbasis ground truth**. Oleh karena itu, evaluasi dilakukan secara:
+
+* **Kualitatif**, dengan melihat:
+
+  * Konsistensi genre antara film input dan hasil rekomendasi.
+  * Relevansi konten (judul dan genre) secara semantik.
+
+#### Contoh Hasil
+
+Rekomendasi untuk film “Toy Story” menunjukkan hasil yang sangat konsisten secara genre:
+
+| No | Judul Film        | Genre                                           |
+| -- | ----------------- | ----------------------------------------------- |
+| 1  | The Good Dinosaur | Adventure\|Animation\|Children\|Comedy\|Fantasy |
+| 2  | Turbo             | Adventure\|Animation\|Children\|Comedy\|Fantasy |
+| 3  | Toy Story 2       | Adventure\|Animation\|Children\|Comedy\|Fantasy |
+
+**Insight**: Sistem mampu mengidentifikasi film-film yang sangat serupa secara konten dan genre, sesuai dengan tujuan pendekatan ini.
+
+#### Kesimpulan
+
+* Cocok untuk cold-start (pengguna baru).
+* Sangat baik untuk konteks metadata film.
+* Evaluasi berbasis konten sudah cukup karena tidak ada data interaksi pengguna yang digunakan.
+
+
+
+### **Evaluasi Collaborative Filtering (Neural Network)**
+
+#### Tujuan Evaluasi
+
+Mengukur **akurasi prediksi rating** yang diberikan model terhadap film yang belum ditonton oleh pengguna, berdasarkan histori rating pengguna lain.
+
+#### Metrik yang Digunakan: RMSE (Root Mean Squared Error)
 
 $$
 \text{RMSE} = \sqrt{\frac{1}{n} \sum_{i=1}^{n}(y_i - \hat{y}_i)^2}
@@ -511,59 +531,48 @@ $$
 
 **Keterangan:**
 
-* $y_i$ = rating aktual yang diberikan pengguna.
-* $\hat{y}_i$ = rating yang diprediksi model.
-* $n$ = jumlah prediksi.
+* $y_i$: rating aktual dari pengguna.
+* $\hat{y}_i$: rating yang diprediksi oleh model.
+* RMSE cocok untuk data rating berskala kontinu karena:
 
-RMSE mengukur seberapa jauh prediksi sistem menyimpang dari nilai rating aktual yang diberikan pengguna.
+  * Mengukur kesalahan prediksi dalam satuan asli rating.
+  * Memberi penalti lebih besar terhadap kesalahan besar.
 
-**Hasil Evaluasi Berdasarkan Grafik Training**
+#### Hasil Evaluasi Berdasarkan Grafik
 
-Berdasarkan hasil pelatihan model collaborative filtering menggunakan neural network (RecommenderNet), didapatkan grafik metrik RMSE sebagai berikut:
+* Model dilatih hingga **epoch ke-16** menggunakan **early stopping**.
+* **Nilai RMSE validasi terbaik ≈ 0.196**.
+* Grafik training menunjukkan:
 
-![Grafik RMSE](attachment:/mnt/data/dad3794a-d45d-4bf0-abf7-e4eb769f07b8.png)
+  * **Penurunan tajam di awal epoch** (model cepat belajar).
+  * **Stabilisasi setelah epoch ke-10**, menandakan konvergensi.
+  * **Jarak kecil antara RMSE training dan validation**, menunjukkan tidak terjadi overfitting.
 
-**Insight dari Grafik:**
+**Insight:**
 
-1. **Penurunan Cepat di Awal**
+* Model mampu memahami preferensi pengguna secara personal.
+* Rekomendasi yang diberikan cukup akurat dibanding data aktual pengguna.
 
-   * RMSE pada data training dan validasi menurun tajam dalam 5–7 epoch pertama, menunjukkan bahwa model mampu dengan cepat memahami pola rating pengguna.
+---
 
-2. **Stabilisasi Setelah Epoch ke-10**
+### Kesesuaian Evaluasi dengan Problem Statement & Goals
 
-   * Setelah epoch ke-10, grafik menunjukkan garis RMSE relatif mendatar, menandakan model telah mencapai *konvergensi*.
+| Aspek                         | Penjelasan                                                                                                                  |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Content-Based Filtering**   | Evaluasi berdasarkan kemiripan konten (genre), sesuai dengan metadata-based recommendation.                                 |
+| **Collaborative Filtering**   | Evaluasi menggunakan RMSE terhadap prediksi rating, sesuai dengan objektif untuk merekomendasikan film yang belum ditonton. |
+| **Problem Statement & Goals** | Evaluasi membuktikan bahwa kedua pendekatan berhasil sesuai dengan pertanyaan masalah dan target proyek.                    |
 
-3. **Tidak Terjadi Overfitting**
+---
 
-   * Jarak antara RMSE training dan validation tetap kecil. Ini menunjukkan generalisasi model cukup baik, dan tidak hanya menghafal data latih.
+### Kesimpulan Evaluasi
 
-4. **Efektivitas EarlyStopping**
+* **Content-Based Filtering** berhasil memberikan rekomendasi film yang relevan secara konten, cocok untuk pengguna baru atau sistem berbasis metadata.
+* **Collaborative Filtering** berhasil memprediksi rating dengan akurat, menunjukkan sistem dapat memberikan rekomendasi personal dengan efektivitas tinggi.
+* Pemilihan metrik **RMSE** tepat untuk pendekatan berbasis rating, dan evaluasi konten kualitatif sudah cukup untuk pendekatan berbasis genre.
 
-   * Grafik validasi yang stabil menunjukkan bahwa EarlyStopping bekerja dengan baik untuk menghentikan pelatihan secara otomatis tanpa membuang sumber daya pelatihan lebih lanjut.
+ *Dengan evaluasi ini, proyek telah membuktikan efektivitas dari dua pendekatan sistem rekomendasi yang dibangun, masing-masing sesuai konteks dan target pengguna yang berbeda.*
 
-**Nilai RMSE Validasi Terbaik:**
-
-> **RMSE ≈ 0.196**
-
-Ini menunjukkan bahwa rata-rata deviasi prediksi model terhadap rating sebenarnya setelah dinormalisasi cukup kecil, yang berarti model mampu memberikan rekomendasi dengan tingkat akurasi yang baik.
-
-
-**Kesesuaian Metrik dengan Problem Statement dan Tujuan Proyek**
-
-Metrik RMSE sangat sesuai dengan **konteks proyek** ini karena:
-
-* Problem statement berfokus pada **prediksi rating pengguna terhadap film**.
-* Tujuan proyek adalah merekomendasikan film yang **mungkin disukai**, berdasarkan histori rating.
-* RMSE memungkinkan kita mengukur seberapa akurat sistem memahami preferensi pengguna dalam skala rating.
-
-Metrik ini memberikan informasi **kuantitatif** dan **objektif** terhadap performa model dalam mempersonalisasi rekomendasi.
-
-
-**Kesimpulan Evaluasi**
-
-* Penggunaan RMSE sebagai metrik utama terbukti efektif dalam mengevaluasi performa model collaborative filtering.
-* Nilai RMSE validasi yang rendah (≈ 0.196) menunjukkan bahwa sistem memiliki potensi kuat dalam memberikan rekomendasi film yang relevan dan personal bagi pengguna.
-* Evaluasi ini membuktikan bahwa pendekatan berbasis neural collaborative filtering dapat digunakan sebagai dasar sistem rekomendasi dalam skenario dunia nyata seperti platform streaming.
 
 
 

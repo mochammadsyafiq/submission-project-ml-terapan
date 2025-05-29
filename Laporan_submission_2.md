@@ -291,7 +291,7 @@ Membentuk data acuan untuk model content-based filtering.
 `movies_new` akan digunakan dalam proses pembobotan TF-IDF untuk mengukur kemiripan antar film berdasarkan genre.
 
 
-## 🧠 MODELING
+## MODELING
 
 Pada tahap ini, dilakukan pembangunan dua model sistem rekomendasi dengan pendekatan yang berbeda, yaitu:
 
@@ -317,22 +317,21 @@ Menggunakan dataframe `movies_new` hasil dari tahap **Data Preparation**, yang m
 
 **Langkah-Langkah Modeling**
 
-1. Ekstraksi Fitur Genre
-
+1.**Ekstraksi Fitur Genre**
 * Genre film dari setiap entri diubah menjadi representasi numerik menggunakan **TF-IDF Vectorizer**.
 * Teknik ini digunakan agar genre yang umum tidak mendominasi bobot representasi.
 * Hasilnya adalah matriks TF-IDF berdimensi: jumlah film × jumlah genre unik.
 
-2. Perhitungan Kemiripan
+2. **Perhitungan Kemiripan**
 
 * Matriks TF-IDF dibandingkan antar film menggunakan **Cosine Similarity**.
 * Cosine similarity digunakan karena mempertimbangkan arah vektor (pola) tanpa memperhatikan besar nilainya, cocok untuk data TF-IDF.
 
-3. Pembuatan Matriks Kemiripan
+3. **Pembuatan Matriks Kemiripan**
 
 * Hasil cosine similarity disimpan dalam bentuk matriks simetri, di mana baris dan kolom merupakan judul film.
 
-4. Pembuatan Fungsi Rekomendasi
+4. **Pembuatan Fungsi Rekomendasi**
 
 * Dibuat fungsi `movie_recommendations()` yang menerima input judul film dan mengembalikan Top-N film serupa berdasarkan skor kemiripan tertinggi.
 
@@ -375,27 +374,27 @@ Menggunakan `ratings_cf`, subset dari `full_data`, dengan kolom:
 
 **Langkah-Langkah Modeling**
 
-1. Preprocessing
+1. **Preprocessing**
 
 * Data `userId` dan `movieId` diubah ke format numerik melalui proses encoding.
 * Dibuat dua mapping dictionary untuk `user` dan `movie` agar dapat digunakan pada layer embedding.
 
-2. Penambahan Kolom
+2. **Penambahan Kolom**
 
 * Kolom `user` dan `movie` ditambahkan sebagai hasil encode.
 * Rating dikonversi ke `float32` untuk efisiensi memori.
 
-3. Normalisasi Rating
+3. **Normalisasi Rating**
 
 * Rating dinormalisasi ke rentang \[0, 1] agar cocok dengan output sigmoid dari neural network.
 
-4. Pembagian Data
+4. **Pembagian Data**
 
 * Dataset dibagi menjadi 80% data training dan 20% data validasi.
 * Input: pasangan `(user, movie)`
 * Target: rating yang telah dinormalisasi
 
-5. Arsitektur Model
+5. **Arsitektur Model**
 
 * Model bernama `RecommenderNet` terdiri dari:
 
@@ -477,7 +476,7 @@ Menggunakan `ratings_cf`, subset dari `full_data`, dengan kolom:
 Dengan menggabungkan kedua pendekatan ini, sistem rekomendasi dapat menjadi lebih kuat dan fleksibel, mengakomodasi berbagai jenis pengguna dan kebutuhan.
 
 
-## 📊 EVALUATION
+## EVALUATION
 
 Evaluasi dilakukan untuk mengukur **seberapa baik sistem rekomendasi memenuhi tujuannya** dalam memberikan rekomendasi film yang relevan dan personal. Proyek ini menerapkan dua pendekatan berbeda, sehingga evaluasi dilakukan dengan **pendekatan metrik yang berbeda pula**, disesuaikan dengan karakteristik model.
 

@@ -330,7 +330,7 @@ Mempersiapkan data numerik sebagai input ke dalam model neural network.
 **Alasan**:
 Model deep learning hanya menerima input dalam bentuk angka. Encoding memungkinkan model mempelajari pola interaksi antar pengguna dan film.
 
-11. **Normalisasi Rating dan Pembagian Data**
+11. **Normalisasi Rating dan Pembagian Data untuk Collaborative Filtering**
 
 **Metode**:
 
@@ -355,7 +355,6 @@ Menyiapkan data latih dan validasi untuk model collaborative filtering.
 **Alasan**:
 Normalisasi membuat proses pelatihan lebih stabil karena skala output (0–1) sesuai dengan fungsi aktivasi sigmoid. Pembagian data menjaga evaluasi model tetap objektif dan menghindari overfitting.
 
-
 ## MODELING
 
 Pada tahap ini, dilakukan pembangunan dua model sistem rekomendasi dengan pendekatan yang berbeda, yaitu:
@@ -364,7 +363,6 @@ Pada tahap ini, dilakukan pembangunan dua model sistem rekomendasi dengan pendek
 2. **Collaborative Filtering (Neural Network)**: Merekomendasikan film berdasarkan interaksi historis pengguna terhadap film (rating).
 
 Kedua pendekatan ini dikembangkan untuk saling melengkapi: pendekatan pertama berfokus pada kesamaan konten, sedangkan yang kedua pada personalisasi preferensi pengguna.
-
 
 ### Content-Based Filtering
 
@@ -382,24 +380,18 @@ Menggunakan dataframe `movies_new` hasil dari tahap **Data Preparation**, yang m
 
 **Langkah-Langkah Modeling**
 
-1.**Ekstraksi Fitur Genre**
-* Genre film dari setiap entri diubah menjadi representasi numerik menggunakan **TF-IDF Vectorizer**.
-* Teknik ini digunakan agar genre yang umum tidak mendominasi bobot representasi.
-* Hasilnya adalah matriks TF-IDF berdimensi: jumlah film × jumlah genre unik.
-
-2. **Perhitungan Kemiripan**
+1. **Perhitungan Kemiripan**
 
 * Matriks TF-IDF dibandingkan antar film menggunakan **Cosine Similarity**.
 * Cosine similarity digunakan karena mempertimbangkan arah vektor (pola) tanpa memperhatikan besar nilainya, cocok untuk data TF-IDF.
 
-3. **Pembuatan Matriks Kemiripan**
+2. **Pembuatan Matriks Kemiripan**
 
 * Hasil cosine similarity disimpan dalam bentuk matriks simetri, di mana baris dan kolom merupakan judul film.
 
-4. **Pembuatan Fungsi Rekomendasi**
+3. **Pembuatan Fungsi Rekomendasi**
 
 * Dibuat fungsi `movie_recommendations()` yang menerima input judul film dan mengembalikan Top-N film serupa berdasarkan skor kemiripan tertinggi.
-
 
 **Hasil Output**
 
@@ -423,6 +415,7 @@ Contoh rekomendasi untuk film **"Toy Story"** berdasarkan kemiripan genre:
 * Tidak memperhitungkan selera pribadi pengguna
 * Rekomendasi bisa bersifat monoton bila genre terlalu umum
 
+
 ### Collaborative Filtering (Neural Network)
 
 **Tujuan**
@@ -439,27 +432,7 @@ Menggunakan `ratings_cf`, subset dari `full_data`, dengan kolom:
 
 **Langkah-Langkah Modeling**
 
-1. **Preprocessing**
-
-* Data `userId` dan `movieId` diubah ke format numerik melalui proses encoding.
-* Dibuat dua mapping dictionary untuk `user` dan `movie` agar dapat digunakan pada layer embedding.
-
-2. **Penambahan Kolom**
-
-* Kolom `user` dan `movie` ditambahkan sebagai hasil encode.
-* Rating dikonversi ke `float32` untuk efisiensi memori.
-
-3. **Normalisasi Rating**
-
-* Rating dinormalisasi ke rentang \[0, 1] agar cocok dengan output sigmoid dari neural network.
-
-4. **Pembagian Data**
-
-* Dataset dibagi menjadi 80% data training dan 20% data validasi.
-* Input: pasangan `(user, movie)`
-* Target: rating yang telah dinormalisasi
-
-5. **Arsitektur Model**
+1. **Arsitektur Model**
 
 * Model bernama `RecommenderNet` terdiri dari:
 
@@ -467,7 +440,7 @@ Menggunakan `ratings_cf`, subset dari `full_data`, dengan kolom:
   * Dot product antar embedding + bias
   * Aktivasi akhir menggunakan **sigmoid**
 
-6. Training Model
+2. **Training Model**
 
 * Model dikompilasi dengan:
 
@@ -530,7 +503,6 @@ Menggunakan `ratings_cf`, subset dari `full_data`, dengan kolom:
 * Tidak bisa digunakan untuk pengguna baru (cold-start)
 * Memerlukan pelatihan model dengan komputasi lebih intensif
 
-
 **Kesimpulan Modeling**
 
 | Pendekatan              | Keunggulan                                    | Kekurangan                      |
@@ -539,7 +511,6 @@ Menggunakan `ratings_cf`, subset dari `full_data`, dengan kolom:
 | Collaborative Filtering | Sangat personal, cocok untuk pengguna aktif   | Tidak cocok untuk pengguna baru |
 
 Dengan menggabungkan kedua pendekatan ini, sistem rekomendasi dapat menjadi lebih kuat dan fleksibel, mengakomodasi berbagai jenis pengguna dan kebutuhan.
-
 
 ## EVALUATION
 

@@ -291,6 +291,284 @@ Membentuk data acuan untuk model content-based filtering.
 `movies_new` akan digunakan dalam proses pembobotan TF-IDF untuk mengukur kemiripan antar film berdasarkan genre.
 
 
+## 🧠 MODELING
+
+Pada tahap ini, dilakukan pembangunan dua model sistem rekomendasi dengan pendekatan yang berbeda, yaitu:
+
+1. **Content-Based Filtering**: Merekomendasikan film berdasarkan kemiripan konten (genre).
+2. **Collaborative Filtering (Neural Network)**: Merekomendasikan film berdasarkan interaksi historis pengguna terhadap film (rating).
+
+Kedua pendekatan ini dikembangkan untuk saling melengkapi: pendekatan pertama berfokus pada kesamaan konten, sedangkan yang kedua pada personalisasi preferensi pengguna.
+
+
+### Content-Based Filtering
+
+**Tujuan**
+
+Membangun sistem rekomendasi yang dapat memberikan film serupa berdasarkan genre dari film yang disukai pengguna.
+
+**Dataset**
+
+Menggunakan dataframe `movies_new` hasil dari tahap **Data Preparation**, yang merupakan hasil pengolahan lanjutan dari `movies.csv`. Dataset ini terdiri dari:
+
+* `id`: ID film (`movieId`)
+* `movie_title`: Judul film (telah dibersihkan dari tahun rilis)
+* `genre`: Genre film (dalam format string dengan pemisah `|`)
+
+**Langkah-Langkah Modeling**
+
+1. Ekstraksi Fitur Genre
+
+* Genre film dari setiap entri diubah menjadi representasi numerik menggunakan **TF-IDF Vectorizer**.
+* Teknik ini digunakan agar genre yang umum tidak mendominasi bobot representasi.
+* Hasilnya adalah matriks TF-IDF berdimensi: jumlah film × jumlah genre unik.
+
+2. Perhitungan Kemiripan
+
+* Matriks TF-IDF dibandingkan antar film menggunakan **Cosine Similarity**.
+* Cosine similarity digunakan karena mempertimbangkan arah vektor (pola) tanpa memperhatikan besar nilainya, cocok untuk data TF-IDF.
+
+3. Pembuatan Matriks Kemiripan
+
+* Hasil cosine similarity disimpan dalam bentuk matriks simetri, di mana baris dan kolom merupakan judul film.
+
+4. Pembuatan Fungsi Rekomendasi
+
+* Dibuat fungsi `movie_recommendations()` yang menerima input judul film dan mengembalikan Top-N film serupa berdasarkan skor kemiripan tertinggi.
+
+
+**Hasil Output**
+
+Contoh rekomendasi untuk film **"Toy Story"** berdasarkan kemiripan genre:
+
+| No | Judul Film              | Skor Kemiripan | Genre                                           |
+| -- | ----------------------- | -------------- | ----------------------------------------------- |
+| 1  | The Good Dinosaur       | 1.0            | Adventure\|Animation\|Children\|Comedy\|Fantasy |
+| 2  | Turbo                   | 1.0            | Adventure\|Animation\|Children\|Comedy\|Fantasy |
+| 3  | Toy Story 2             | 1.0            | Adventure\|Animation\|Children\|Comedy\|Fantasy |
+| 4  | Wild, The               | 1.0            | Adventure\|Animation\|Children\|Comedy\|Fantasy |
+| 5  | Tale of Despereaux, The | 1.0            | Adventure\|Animation\|Children\|Comedy\|Fantasy |
+
+**Kelebihan**
+
+* Tidak bergantung pada histori pengguna lain
+* Dapat memberikan rekomendasi meski pengguna baru (cold start)
+
+**Kelemahan**
+
+* Tidak memperhitungkan selera pribadi pengguna
+* Rekomendasi bisa bersifat monoton bila genre terlalu umum
+
+### Collaborative Filtering (Neural Network)
+
+**Tujuan**
+
+Membangun sistem rekomendasi yang dapat **mempersonalisasi rekomendasi** berdasarkan pola rating pengguna lain yang memiliki preferensi serupa.
+
+**Dataset**
+
+Menggunakan `ratings_cf`, subset dari `full_data`, dengan kolom:
+
+* `userId`: ID pengguna
+* `movieId`: ID film
+* `rating`: Rating yang diberikan pengguna terhadap film
+
+**Langkah-Langkah Modeling**
+
+1. Preprocessing
+
+* Data `userId` dan `movieId` diubah ke format numerik melalui proses encoding.
+* Dibuat dua mapping dictionary untuk `user` dan `movie` agar dapat digunakan pada layer embedding.
+
+2. Penambahan Kolom
+
+* Kolom `user` dan `movie` ditambahkan sebagai hasil encode.
+* Rating dikonversi ke `float32` untuk efisiensi memori.
+
+3. Normalisasi Rating
+
+* Rating dinormalisasi ke rentang \[0, 1] agar cocok dengan output sigmoid dari neural network.
+
+4. Pembagian Data
+
+* Dataset dibagi menjadi 80% data training dan 20% data validasi.
+* Input: pasangan `(user, movie)`
+* Target: rating yang telah dinormalisasi
+
+5. Arsitektur Model
+
+* Model bernama `RecommenderNet` terdiri dari:
+
+  * Layer embedding untuk user dan movie
+  * Dot product antar embedding + bias
+  * Aktivasi akhir menggunakan **sigmoid**
+
+6. Training Model
+
+* Model dikompilasi dengan:
+
+  * Loss function: **Binary Crossentropy**
+  * Optimizer: **Adam**
+  * Metrik: **Root Mean Squared Error (RMSE)**
+* Digunakan **EarlyStopping** untuk menghentikan pelatihan jika tidak ada peningkatan selama 5 epoch.
+
+**Evaluasi Model**
+
+* Model berhenti pada **epoch ke-16** dengan **val RMSE ≈ 0.196**
+* Kurva training dan validasi menunjukkan tidak ada overfitting
+* Model menunjukkan kemampuan generalisasi yang baik
+
+**Proses Rekomendasi**
+
+1. **Ambil User Acak**
+   Sistem memilih salah satu user yang pernah memberikan rating.
+
+2. **Identifikasi Film yang Belum Ditonton**
+   Menggunakan filtering, model menemukan film yang belum dirating oleh user tersebut.
+
+3. **Prediksi Rating**
+   Model memprediksi skor (antara 0 dan 1) untuk setiap film yang belum ditonton user.
+
+4. **Ambil Top-N**
+   Film dengan skor tertinggi diambil sebagai rekomendasi personal.
+
+**Hasil Rekomendasi (User ID: 261.0)**
+
+**Film yang disukai user (rating tertinggi):**
+
+* Pulp Fiction
+* Forrest Gump
+* Requiem for a Dream
+* American Beauty
+
+**Top-10 Rekomendasi Model:**
+
+| No | Judul Film                        | Genre                          |
+| -- | --------------------------------- | ------------------------------ |
+| 1  | Philadelphia Story, The           | Comedy\|Drama\|Romance         |
+| 2  | Singin’ in the Rain               | Comedy\|Musical\|Romance       |
+| 3  | Casablanca                        | Drama\|Romance                 |
+| 4  | Sunset Blvd.                      | Drama\|Film-Noir\|Romance      |
+| 5  | Rear Window                       | Mystery\|Thriller              |
+| 6  | Mary and Max                      | Animation\|Comedy\|Drama       |
+| 7  | 2001: A Space Odyssey             | Adventure\|Drama\|Sci-Fi       |
+| 8  | Rosemary’s Baby                   | Drama\|Horror\|Thriller        |
+| 9  | Man Bites Dog                     | Comedy\|Crime\|Drama\|Thriller |
+| 10 | Wallace & Gromit: A Grand Day Out | Animation\|Children\|Comedy    |
+
+**Kelebihan**
+
+* Memahami selera personal pengguna berdasarkan histori
+* Mampu memberikan rekomendasi unik yang tidak terbatas konten
+
+**Kelemahan**
+
+* Tidak bisa digunakan untuk pengguna baru (cold-start)
+* Memerlukan pelatihan model dengan komputasi lebih intensif
+
+
+**Kesimpulan Modeling**
+
+| Pendekatan              | Keunggulan                                    | Kekurangan                      |
+| ----------------------- | --------------------------------------------- | ------------------------------- |
+| Content-Based Filtering | Relevan secara konten, cocok untuk cold-start | Kurang personal                 |
+| Collaborative Filtering | Sangat personal, cocok untuk pengguna aktif   | Tidak cocok untuk pengguna baru |
+
+Dengan menggabungkan kedua pendekatan ini, sistem rekomendasi dapat menjadi lebih kuat dan fleksibel, mengakomodasi berbagai jenis pengguna dan kebutuhan.
+
+
+## EVALUATION
+
+### **Metrik Evaluasi: RMSE**
+
+#### **Alasan Pemilihan Metrik RMSE**
+
+Dalam proyek ini, sistem rekomendasi dibangun menggunakan dua pendekatan berbeda:
+
+1. **Content-Based Filtering**
+
+   * Menganalisis kesamaan konten film berdasarkan genre.
+   * Tidak memiliki label ground truth eksplisit untuk kesukaan pengguna → evaluasi kuantitatif sulit dilakukan langsung.
+
+2. **Collaborative Filtering (Neural Network)**
+
+   * Memprediksi seberapa besar kemungkinan seorang pengguna akan menyukai sebuah film berdasarkan data historis interaksi pengguna.
+   * Memiliki ground truth eksplisit (nilai rating yang diberikan pengguna).
+   * Oleh karena itu, digunakan metrik **Root Mean Squared Error (RMSE)** untuk mengevaluasi akurasi prediksi rating.
+
+RMSE dipilih karena:
+
+* Sangat umum digunakan untuk mengevaluasi sistem rekomendasi berbasis rating.
+* Memberikan penalti lebih besar terhadap kesalahan prediksi yang besar.
+* Cocok untuk data berskala kontinu (dalam hal ini, rating film 0.5–5.0 yang telah dinormalisasi ke 0–1).
+
+
+###  **Definisi RMSE**
+
+$$
+\text{RMSE} = \sqrt{\frac{1}{n} \sum_{i=1}^{n}(y_i - \hat{y}_i)^2}
+$$
+
+**Keterangan:**
+
+* $y_i$ = rating aktual yang diberikan pengguna.
+* $\hat{y}_i$ = rating yang diprediksi model.
+* $n$ = jumlah prediksi.
+
+RMSE mengukur seberapa jauh prediksi sistem menyimpang dari nilai rating aktual yang diberikan pengguna.
+
+**Hasil Evaluasi Berdasarkan Grafik Training**
+
+Berdasarkan hasil pelatihan model collaborative filtering menggunakan neural network (RecommenderNet), didapatkan grafik metrik RMSE sebagai berikut:
+
+![Grafik RMSE](attachment:/mnt/data/dad3794a-d45d-4bf0-abf7-e4eb769f07b8.png)
+
+**Insight dari Grafik:**
+
+1. **Penurunan Cepat di Awal**
+
+   * RMSE pada data training dan validasi menurun tajam dalam 5–7 epoch pertama, menunjukkan bahwa model mampu dengan cepat memahami pola rating pengguna.
+
+2. **Stabilisasi Setelah Epoch ke-10**
+
+   * Setelah epoch ke-10, grafik menunjukkan garis RMSE relatif mendatar, menandakan model telah mencapai *konvergensi*.
+
+3. **Tidak Terjadi Overfitting**
+
+   * Jarak antara RMSE training dan validation tetap kecil. Ini menunjukkan generalisasi model cukup baik, dan tidak hanya menghafal data latih.
+
+4. **Efektivitas EarlyStopping**
+
+   * Grafik validasi yang stabil menunjukkan bahwa EarlyStopping bekerja dengan baik untuk menghentikan pelatihan secara otomatis tanpa membuang sumber daya pelatihan lebih lanjut.
+
+**Nilai RMSE Validasi Terbaik:**
+
+> **RMSE ≈ 0.196**
+
+Ini menunjukkan bahwa rata-rata deviasi prediksi model terhadap rating sebenarnya setelah dinormalisasi cukup kecil, yang berarti model mampu memberikan rekomendasi dengan tingkat akurasi yang baik.
+
+
+**Kesesuaian Metrik dengan Problem Statement dan Tujuan Proyek**
+
+Metrik RMSE sangat sesuai dengan **konteks proyek** ini karena:
+
+* Problem statement berfokus pada **prediksi rating pengguna terhadap film**.
+* Tujuan proyek adalah merekomendasikan film yang **mungkin disukai**, berdasarkan histori rating.
+* RMSE memungkinkan kita mengukur seberapa akurat sistem memahami preferensi pengguna dalam skala rating.
+
+Metrik ini memberikan informasi **kuantitatif** dan **objektif** terhadap performa model dalam mempersonalisasi rekomendasi.
+
+
+**Kesimpulan Evaluasi**
+
+* Penggunaan RMSE sebagai metrik utama terbukti efektif dalam mengevaluasi performa model collaborative filtering.
+* Nilai RMSE validasi yang rendah (≈ 0.196) menunjukkan bahwa sistem memiliki potensi kuat dalam memberikan rekomendasi film yang relevan dan personal bagi pengguna.
+* Evaluasi ini membuktikan bahwa pendekatan berbasis neural collaborative filtering dapat digunakan sebagai dasar sistem rekomendasi dalam skenario dunia nyata seperti platform streaming.
+
+
+
+
+
 
 
 

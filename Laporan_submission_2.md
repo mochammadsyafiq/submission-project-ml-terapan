@@ -169,7 +169,7 @@ Metode: `duplicated().sum()`
 
 ## **Data Preparation**
 
-Tahapan ini berfokus pada proses penggabungan dan pembersihan data agar siap digunakan untuk membangun sistem rekomendasi. Teknik yang dilakukan mencakup *merging*, *cleaning*, *filtering*, hingga eksplorasi awal terhadap genre film.
+Tahapan ini berfokus pada proses penggabungan, pembersihan, dan transformasi data agar siap digunakan untuk membangun sistem rekomendasi. Teknik yang dilakukan mencakup *merging*, *cleaning*, *feature extraction*, *encoding*, *normalization*, hingga *splitting* data.
 
 1. **Menggabungkan Dataset**
 
@@ -210,7 +210,7 @@ Tidak diperlukan dalam proses modeling, sehingga lebih baik dihapus untuk menyed
 Mengisi nilai kosong pada kolom opsional, serta menghapus entri yang tidak lengkap untuk rating dan ID.
 
 **Alasan**:
-Kolom `tag` opsional, tapi `rating`, `userId`, dan `tmdbId` sangat penting untuk membuat model yang akurat.
+Kolom `tag` bersifat opsional, namun `rating`, `userId`, dan `tmdbId` sangat penting untuk membangun model yang akurat dan stabil.
 
 4. **Membersihkan Judul Film**
 
@@ -236,7 +236,7 @@ Mengurutkan dan menghapus entri film yang duplikat berdasarkan ID.
 **Alasan**:
 Mencegah satu film dihitung lebih dari sekali dalam pembentukan vektor konten.
 
- 6. **Mengecek Film Unik dan Variasi Genre**
+6. **Mengecek Film dan Genre**
 
 **Metode**:
 
@@ -246,12 +246,12 @@ fix_movies.genres.unique()
 ```
 
 **Tujuan**:
-Memastikan jumlah film yang tersedia sudah bersih dan melihat keragaman genre.
+Memastikan data film bersih dan genre beragam.
 
 **Alasan**:
-Penting untuk memahami ruang konten yang akan dipelajari oleh model berbasis konten.
+Genre merupakan fitur utama dalam pendekatan content-based filtering.
 
-7. **Mengecek Genre Film Tertentu**
+7. **Validasi Genre Film Tertentu**
 
 **Metode**:
 
@@ -260,23 +260,20 @@ fix_movies[fix_movies['title'] == 'Toy Story']
 ```
 
 **Tujuan**:
-Validasi manual bahwa genre film tertentu sudah sesuai.
+Validasi manual genre dari film "Toy Story".
 
 **Alasan**:
-Memastikan data genre yang digunakan pada saat inferensi benar-benar mencerminkan isi film.
+Memastikan representasi genre sesuai dengan isi film yang sebenarnya.
 
 8. **Membuat Dataset Referensi Film (`movies_new`)**
 
 **Metode**:
 
-* Konversi kolom `movieId`, `title`, dan `genres` menjadi list
-* Susun kembali ke dalam DataFrame baru
+* Dataset `fix_movies` disalin dan difilter agar hanya menyimpan satu entri unik per film
+* Kolom `movieId`, `title`, dan `genres` dikonversi menjadi list
+* Disusun kembali ke dalam DataFrame `movies_new`
 
 ```python
-movie_id = preparation['movieId'].tolist()
-movie_title = preparation['title'].tolist()
-movie_genre = preparation['genres'].tolist()
-
 movies_new = pd.DataFrame({
     'id': movie_id,
     'movie_title': movie_title,
@@ -285,10 +282,78 @@ movies_new = pd.DataFrame({
 ```
 
 **Tujuan**:
-Membentuk data acuan untuk model content-based filtering.
+Membentuk data acuan bersih dan siap pakai untuk sistem content-based filtering.
 
 **Alasan**:
-`movies_new` akan digunakan dalam proses pembobotan TF-IDF untuk mengukur kemiripan antar film berdasarkan genre.
+`movies_new` menjadi dasar pembuatan vektor TF-IDF untuk mengukur kemiripan antar film berdasarkan genre.
+
+9. **Ekstraksi Fitur Genre menggunakan TF-IDF**
+
+**Metode**:
+
+* `TfidfVectorizer()` dari `sklearn.feature_extraction.text`
+* `fit_transform(data['genre'])` untuk membuat matriks TF-IDF
+* `tfidf_matrix.todense()` untuk konversi ke bentuk dense
+* Matriks diubah menjadi `DataFrame` dengan indeks judul film dan kolom token genre
+
+```python
+tf = TfidfVectorizer()
+tfidf_matrix = tf.fit_transform(data['genre'])
+tfidf_df = pd.DataFrame(tfidf_matrix.todense(), columns=tf.get_feature_names_out(), index=data['movie_title'])
+```
+
+**Tujuan**:
+Mengubah data genre yang berbentuk teks menjadi representasi numerik berbobot.
+
+**Alasan**:
+TF-IDF menjaga keseimbangan bobot antara genre populer dan langka, sehingga sistem lebih akurat dalam menemukan film yang serupa berdasarkan kontennya.
+
+10. **Menyiapkan Dataset untuk Collaborative Filtering**
+
+**Metode**:
+
+* Dataset `ratings_cf` diambil dari `full_data[['userId', 'movieId', 'rating']]`
+* Buat dua dictionary encoding:
+
+  * `user_to_user_encoded`: userId asli → ID numerik
+  * `movie_to_movie_encoded`: movieId asli → ID numerik
+* Mapping ke kolom baru `user` dan `movie`
+
+```python
+df['user'] = df['userId'].map(user_to_user_encoded)
+df['movie'] = df['movieId'].map(movie_to_movie_encoded)
+```
+
+**Tujuan**:
+Mempersiapkan data numerik sebagai input ke dalam model neural network.
+
+**Alasan**:
+Model deep learning hanya menerima input dalam bentuk angka. Encoding memungkinkan model mempelajari pola interaksi antar pengguna dan film.
+
+11. **Normalisasi Rating dan Pembagian Data**
+
+**Metode**:
+
+* Normalisasi `rating` ke rentang \[0, 1] menggunakan rumus:
+
+```python
+y = df['rating'].apply(lambda x: (x - min_rating) / (max_rating - min_rating)).values
+```
+
+* Buat variabel `x` dari pasangan kolom `user` dan `movie`
+* Lakukan *train-test split* dengan proporsi 80:20 menggunakan slicing
+
+```python
+train_indices = int(0.8 * df.shape[0])
+x_train, x_val = x[:train_indices], x[train_indices:]
+y_train, y_val = y[:train_indices], y[train_indices:]
+```
+
+**Tujuan**:
+Menyiapkan data latih dan validasi untuk model collaborative filtering.
+
+**Alasan**:
+Normalisasi membuat proses pelatihan lebih stabil karena skala output (0–1) sesuai dengan fungsi aktivasi sigmoid. Pembagian data menjaga evaluasi model tetap objektif dan menghindari overfitting.
 
 
 ## MODELING

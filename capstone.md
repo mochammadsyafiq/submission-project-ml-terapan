@@ -43,7 +43,7 @@ Model klasifikasi dibangun menggunakan teknik **transfer learning** dengan meman
 
 Model dilatih menggunakan **Adam Optimizer** dengan *learning rate* kecil agar proses pelatihan lebih stabil. Fungsi loss yang digunakan adalah **Categorical Crossentropy Loss**, karena klasifikasi bersifat multi-kelas. Beberapa teknik tambahan digunakan untuk meningkatkan performa dan efisiensi pelatihan yang dimana ini juga saran dari Advisor untuk menghindari *overfitting*, seperti:
 
-> Model menggunakan callback **stop\_in\_accuracy**, **ReduceLROnPlateau**, dan **ModelCheckpoint**. yang dimana fungsinya untuk Callback `stop_in_accuracy` secara otomatis menghentikan pelatihan jika akurasi dan val\_akurasi sudah mencapai 95%, sementara dua callback lainnya berguna untuk mengoptimalkan efisiensi pelatihan dan menyimpan model terbaik.
+* Model menggunakan callback **stop\_in\_accuracy**, **ReduceLROnPlateau**, dan **ModelCheckpoint**. yang dimana fungsinya untuk Callback `stop_in_accuracy` secara otomatis menghentikan pelatihan jika akurasi dan val\_akurasi sudah mencapai 95%, sementara dua callback lainnya berguna untuk mengoptimalkan efisiensi pelatihan dan menyimpan model terbaik.
 
 Setelah pelatihan, model terbaik disimpan dalam dua format: **`.h5`** dan **SavedModel**, agar fleksibel digunakan kembali atau dikonversi ke platform lain.
 
